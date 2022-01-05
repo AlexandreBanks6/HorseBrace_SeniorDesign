@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//Configuration Bits
+//----------------------<Configuration Bits>---------------------------------
 // FDEVOPT
 #pragma config SOSCHP = OFF             // Secondary Oscillator High Power Enable bit (SOSC oprerates in normal power mode.)
 #pragma config USERID = 0xFFFF          // User ID bits (Enter Hexadecimal value)
@@ -45,14 +45,21 @@
 
 #include <xc.h>
 
+#include "UART_HeaderFile.h"    //Header file for source file with UART functions
 
-//Clock Configuration Bits
-
-
-
-int main(int argc, char** argv) {
+main() {
     SPLLCONbits.PLLMULT=0x0002; //The system clock (SYSCLK) and peripheral clock (PBCLK) are both at 32 MHz
+    long BaudRate = 9600; 
+    long FPB=32000000;   //Peripheral clock speed is 32 MHz 
+    
+    //---------------<Initializing Peripherals>----------------
+    
+    initUART(BaudRate,FPB); //Initializes the UART Module
+    while(1){
+        
+    }
 
-    return (EXIT_SUCCESS);
 }
+
+
 

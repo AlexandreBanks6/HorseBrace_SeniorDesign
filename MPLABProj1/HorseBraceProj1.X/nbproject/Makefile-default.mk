@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=MainSource.c
+SOURCEFILES_QUOTED_IF_SPACED=MainSource.c UART_SourceFile.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/MainSource.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/MainSource.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/MainSource.o ${OBJECTDIR}/UART_SourceFile.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/MainSource.o.d ${OBJECTDIR}/UART_SourceFile.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/MainSource.o
+OBJECTFILES=${OBJECTDIR}/MainSource.o ${OBJECTDIR}/UART_SourceFile.o
 
 # Source Files
-SOURCEFILES=MainSource.c
+SOURCEFILES=MainSource.c UART_SourceFile.c
 
 
 
@@ -113,12 +113,24 @@ ${OBJECTDIR}/MainSource.o: MainSource.c  .generated_files/95724e063901bcf81a348c
 	@${RM} ${OBJECTDIR}/MainSource.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/MainSource.o.d" -o ${OBJECTDIR}/MainSource.o MainSource.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/UART_SourceFile.o: UART_SourceFile.c  .generated_files/62da9404616c0d2e025479a32607a5fc391c476b.flag .generated_files/5476a8ba234974ffa0ea0daeb639b475345adc30.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/UART_SourceFile.o.d 
+	@${RM} ${OBJECTDIR}/UART_SourceFile.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/UART_SourceFile.o.d" -o ${OBJECTDIR}/UART_SourceFile.o UART_SourceFile.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 else
 ${OBJECTDIR}/MainSource.o: MainSource.c  .generated_files/6c3ce3dc08f498b07ab73f0538c98c67bf03c680.flag .generated_files/5476a8ba234974ffa0ea0daeb639b475345adc30.flag
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/MainSource.o.d 
 	@${RM} ${OBJECTDIR}/MainSource.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/MainSource.o.d" -o ${OBJECTDIR}/MainSource.o MainSource.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/UART_SourceFile.o: UART_SourceFile.c  .generated_files/9fd66021193a71b1e7e1d7ab0b5ac0b78526963a.flag .generated_files/5476a8ba234974ffa0ea0daeb639b475345adc30.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/UART_SourceFile.o.d 
+	@${RM} ${OBJECTDIR}/UART_SourceFile.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/UART_SourceFile.o.d" -o ${OBJECTDIR}/UART_SourceFile.o UART_SourceFile.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
 endif
 

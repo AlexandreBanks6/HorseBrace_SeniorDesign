@@ -78,3 +78,15 @@ int ReadString(char *string)   //Reads a string using null '\0' termination an r
     }while(length<100);  //Only read in max of 100 characters
         return(length); //Returns the length of the string
 }
+
+char CheckBluetoothStatus(void)
+{
+    char Status;
+    Status=PORTBbits.RB8;       //Reads the status of the bluetooth module
+    return(Status);
+}
+
+void WriteKey(char KeyVal)
+{
+    LATBbits.LATB0=KeyVal;  //Writes the mode of the bluetooth module
+}

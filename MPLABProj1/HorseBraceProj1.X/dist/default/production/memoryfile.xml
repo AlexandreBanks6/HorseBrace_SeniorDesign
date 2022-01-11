@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <project>                                  
-  <executable name="dist/default/debug/HorseBraceProj1.X.debug.elf">                 
+  <executable name="dist/default/production/HorseBraceProj1.X.production.elf">                 
     <memory name="program">                 
       <units>bytes</units>                 
       <length>66704</length>                 
-      <used>2480</used>                     
-      <free>64224</free>                     
+      <used>2588</used>                     
+      <free>64116</free>                     
     </memory>                              
     <memory name="data">              
       <units>bytes</units>                 
-      <length>8704</length>                 
-      <used>1024</used>                     
-      <free>7680</free>                     
+      <length>8192</length>                 
+      <used>0</used>                     
+      <free>8192</free>                     
     </memory>                              
   </executable>                            
 </project>                                 

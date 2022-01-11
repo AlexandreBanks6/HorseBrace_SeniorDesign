@@ -6,7 +6,8 @@ transfer data to computer, writes calibration command, writes record/stop
 recording commands.
 
 %}
-
+clear
+clc
 %% Defining the app
 % fig=uifigure;
 % fig.Name="ReHORSE Tech";
@@ -30,22 +31,35 @@ recording commands.
 list=bluetoothlist;
 %Connect to the HC-05 bluetooth module
 device=bluetooth("HC-05");  
+ReHorseUI(device);
 
 %% UI Functions
-function ReHorseUI
+function ReHorseUI(device)
 fig=uifigure('Position',[700,350,200,200]);
 
 %Create a pushbutton
 b1=uibutton(fig,'push',...
-    'Position',[50,50,100,100],...
-    'ButtonPushedFcn',@(b1,event) readDataButtonPushed(b1));    %Calls the function to read data from HC-05
-b1.Text='Read Data';
+    'Position',[50,50,50,100],...
+    'ButtonPushedFcn',@(b1,event) WriteGreen(b1,device));    %Calls the function to turn on the green LED through HC-05
+b1.Text='Green';
+b2=uibutton(fig,'push',...
+    'Position',[100,50,50,100],...
+    'ButtonPushedFcn',@(b2,event) WriteRed(b2,device));    %Calls the function to turn on the green LED through HC-05
+b2.Text='Red';
+
 end
 
-function readDataButtonPushed(b1)
-ReadDataCommand=['ReadData',0];  %Reads data command is sent with nul termination
-device=bluetooth("HC-05"); 
-write(device,ReadDataCommand);  %Writes the read data command to the HC-05 module
+function WriteGreen(b1,device)
+ReadDataCommand='G';  %Sends 'G' char to turn on the green LED
+%device=bluetooth("HC-05"); 
+write(device,ReadDataCommand);  %Writes the green command to the HC-05 module
+
+end
+
+function WriteRed(b2,device)
+ReadDataCommand='R';  %Sends 'R' char to turn on the red LED
+%device=bluetooth("HC-05"); 
+write(device,ReadDataCommand);  %Writes the red command to the HC-05 module
 
 end
 

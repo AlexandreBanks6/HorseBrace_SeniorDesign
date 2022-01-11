@@ -5,17 +5,15 @@
  * Date: January 4, 2022
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 //----------------------<Configuration Bits>---------------------------------
+
 // FDEVOPT
 #pragma config SOSCHP = OFF             // Secondary Oscillator High Power Enable bit (SOSC oprerates in normal power mode.)
 #pragma config USERID = 0xFFFF          // User ID bits (Enter Hexadecimal value)
 
 // FICD
 #pragma config JTAGEN = ON              // JTAG Enable bit (JTAG is enabled)
-#pragma config ICS = PGx1               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC1/PGED1)
+#pragma config ICS = PGx3               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC3/PGED3)
 
 // FPOR
 #pragma config BOREN = BOR3             // Brown-out Reset Enable bits (Brown-out Reset enabled in hardware; SBOREN bit disabled)
@@ -30,15 +28,15 @@
 #pragma config RCLKSEL = LPRC           // Run Mode Watchdog Timer Clock Source Selection bits (Clock source is LPRC (same as for sleep mode))
 #pragma config FWDTEN = ON              // Watchdog Timer Enable bit (WDT is enabled)
 
-// FOSCSEL
-#pragma config FNOSC = PLL              // Oscillator Selection bits (Primary or FRC oscillator with PLL)
+// FOSCSEL (the system clock (Fsys) and peripheral clock (Fpb) are set to 8MHz)
+#pragma config FNOSC = FRCDIV           // Oscillator Selection bits (Fast RC oscillator (FRC) with divide-by-N)
 #pragma config PLLSRC = FRC             // System PLL Input Clock Selection bit (FRC oscillator is selected as PLL reference input on device reset)
-#pragma config SOSCEN = OFF             // Secondary Oscillator Enable bit (Secondary oscillator is disabled)
-#pragma config IESO = ON                // Two Speed Startup Enable bit (Two speed startup is enabled)
+#pragma config SOSCEN = ON              // Secondary Oscillator Enable bit (Secondary oscillator is enabled)
+#pragma config IESO = OFF               // Two Speed Startup Enable bit (Two speed startup is disabled)
 #pragma config POSCMOD = OFF            // Primary Oscillator Selection bit (Primary oscillator is disabled)
 #pragma config OSCIOFNC = OFF           // System Clock on CLKO Pin Enable bit (OSCO pin operates as a normal I/O)
 #pragma config SOSCSEL = OFF            // Secondary Oscillator External Clock Enable bit (SOSC pins configured for Crystal mode)
-#pragma config FCKSM = CSECME           // Clock Switching and Fail-Safe Clock Monitor Enable bits (Clock switching is enabled; Fail-safe clock monitor is enabled)
+#pragma config FCKSM = CSDCMD           // Clock Switching and Fail-Safe Clock Monitor Enable bits (Clock switching is disabled; Fail-safe clock monitor is disabled)
 
 // FSEC
 #pragma config CP = OFF                 // Code Protection Enable bit (Code protection is disabled)
@@ -46,6 +44,7 @@
 #include <xc.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
 
@@ -55,9 +54,8 @@ void writeGreen(char state);
 void writeRed(char state);
 
 int main(int argc, char** argv) {
-    SPLLCONbits.PLLMULT=0x0002; //The system clock (SYSCLK) and peripheral clock (PBCLK) are both at 32 MHz
     long BaudRate = 9600; 
-    long FPB=32000000;   //Peripheral clock speed is 32 MHz 
+    long FPB=8000000;   //Peripheral clock speed is 32 MHz 
     
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pinse
@@ -75,11 +73,31 @@ int main(int argc, char** argv) {
     WriteKey(0); //The Bluetooth module is set to data mode (0)
     
     while(1){
+        char dataChar;  //Char Read From Bluetooth Module
+        //while(CheckBluetoothStatus()!=0); //Loops until the bluetooth module is ready for use (0==ready for use)
+        //WriteChar('G');
+        
+        dataChar=ReadChar();    //Reads Character from bluetooth module
+        if(dataChar=='G')
+        {
+            writeGreen(1);  //Turns green light on 
+            writeRed(0);    //Turns red light off
+        }
+        else if(dataChar=='R')
+        {
+            writeGreen(0);  //Turns green light off 
+            writeRed(1);    //Turns red light on
+        }
+        else
+        {
+            writeGreen(0);  //Turns green light off 
+            writeRed(0);    //Turns red light off
+        }   
         
         
-        while(!CheckBluetoothStatus()); //Loops until the bluetooth module is ready for use
-                
-        length=ReadString(DataUART);   //Waits until a string is read by the UART module and then string is stored in "DataUART"
+        
+        //The following is preliminary code to read a string
+        /* length=ReadString(DataUART);   //Waits until a string is read by the UART module and then string is stored in "DataUART"
         
         if(strcmp(DataUART,"Green"))
         {
@@ -96,7 +114,7 @@ int main(int argc, char** argv) {
             writeGreen(0);  //Turns green light off 
             writeRed(0);    //Turns red light off
         }
-            
+        */
        
                 
         
@@ -109,12 +127,16 @@ int main(int argc, char** argv) {
 void ConfigurePins(void)
 {
     //KEY Pin For Bluetooth Module (data mode or AT Command) - default is low (data mode)
+    ANSELBbits.ANSB0=0; //RB0 is set as digital pin
     TRISBbits.TRISB0=0; //RB0 set as output
-    //STATE Pin for bluetooth module (checks if bluetooth is working)
+    //STATE Pin for bluetooth module (checks if bluetooth is working
     TRISBbits.TRISB8=1; //RB8 set as input
-    //RX Pin for bluetooth module (on micros side) (does not need to be programmed because it is built in in hardware)    
+    //RX Pin for bluetooth module (on micros side) (does not need to be programmed because it is built in in hardware) 
+    ANSELBbits.ANSB15=0; //SETS RB15 to digital I/O
+    TRISBbits.TRISB15=1;    //U1RX (RB15) is set to input
     //TX Pin for bluetooth module (one micros side) (does not need to be programmed because it is built in in hardware)
-    
+    ANSELBbits.ANSB14=0; //Sets RB14 to digital I/O
+    TRISBbits.TRISB14=0; //U1TX is an output
     //~~~~~~~~~~<Pins for de-bugging>------------
     ANSELBbits.ANSB12=0; //Sets RB12 to digital I/O
     TRISBbits.TRISB12=0; //Output to green LED ( pin 18 on J2 HDR-2.54 Female)

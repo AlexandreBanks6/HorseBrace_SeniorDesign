@@ -18,13 +18,15 @@ void initUART(long BaudRate, long FPB) //Initializes the UART Module for 8N1 UAR
     U1MODEbits.SIDL=0; //Continues operation in idle mode
     U1MODEbits.IREN=0;  //Disables IrDA
     U1MODEbits.RTSMD=0; //U1RTS pin is in flow contol mode (not used in this application)
-    U1MODEbits.UEN=0b00; //U1TX and U1RX are enabled
-    U1MODEbits.WAKE=1;  //Wake-up on start bit detection
+
+    U1MODEbits.SLPEN=1; //UART1 clock runs during sleep
+    U1MODEbits.WAKE=0;  //Wake-up on start bit detection
     U1MODEbits.LPBACK=0;    //Loopback mode is disabled
     U1MODEbits.RXINV=0; //U1RX idle state is "1"
     U1MODEbits.PDSEL=0b00; //8-bit data with no parity
     U1MODEbits.STSEL=0; //One stop bit
     U1STAbits.UTXINV=0; //U1TX Idle state is "1"
+    U1MODEbits.UEN=0b00; //U1TX and U1RX are enabled
     U1MODEbits.ON=1; //UART Peripheral is enabled
     U1STAbits.URXEN=1;  //UART1 receiver is enabled
     U1STAbits.UTXEN=1;  //UART1 transmitter is enabled
@@ -58,7 +60,11 @@ int WriteString(char *string) //Function to send string over UART1
 //~~~~~~~~~~~~~~~~<Reading Character Using UART1>------------------------
 char ReadChar(void)             //Reads a single character from the UART1 RX
 {
-    while(!U1STAbits.URXDA);    //Waits receive buffer has data and at least one character can be read
+    U1STAbits.URXEN=1;  //UART1 receiver is enabled
+    while(!U1STAbits.URXDA)
+    {
+        
+    }    //Waits receive buffer has data and at least one character can be read
     return U1RXREG;
 }
 

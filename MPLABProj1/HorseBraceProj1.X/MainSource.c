@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
     WriteKey(0); //The Bluetooth module is set to data mode (0)
     
     while(1){
+        ANSELBbits.
         char dataChar;  //Char Read From Bluetooth Module
         //while(CheckBluetoothStatus()!=0); //Loops until the bluetooth module is ready for use (0==ready for use)
         //WriteChar('G');
@@ -126,6 +127,7 @@ int main(int argc, char** argv) {
 
 void ConfigurePins(void)
 {
+    //---------------------<Bluetooth Module Pins (UART1)>---------------------
     //KEY Pin For Bluetooth Module (data mode or AT Command) - default is low (data mode)
     ANSELBbits.ANSB0=0; //RB0 is set as digital pin
     TRISBbits.TRISB0=0; //RB0 set as output
@@ -137,11 +139,25 @@ void ConfigurePins(void)
     //TX Pin for bluetooth module (one micros side) (does not need to be programmed because it is built in in hardware)
     ANSELBbits.ANSB14=0; //Sets RB14 to digital I/O
     TRISBbits.TRISB14=0; //U1TX is an output
-    //~~~~~~~~~~<Pins for de-bugging>------------
-    ANSELBbits.ANSB12=0; //Sets RB12 to digital I/O
-    TRISBbits.TRISB12=0; //Output to green LED ( pin 18 on J2 HDR-2.54 Female)
-    ANSELAbits.ANSA3=0; // Sets RA3 to digital I/O
-    TRISAbits.TRISA3=0; //Output to red LED ( pin 10 on J1 HDR-2.54 Female)
+    
+    //------------------------------<ADC Pins>----------------------------------
+    
+    //Flex Sensor 1 Input
+    ANSELBbits.ANSB1=1; //RB1 (AN3) set to analogue input
+    TRISBbits.TRISB1=1;
+    
+    //Flex Sensor 2 Input
+    ANSELBbits.ANSB2=1; //RB2 (AN4) set to analogue input
+    TRISBbits.TRISB2=1;
+    //Accelerometer x-channel Input
+    ANSELAbits.ANSA2=1; //RA2 (AN5) set to analogue input
+    TRISAbits.TRISA2=1;
+    //Accelerometer y-channel Input
+    ANSELAbits.ANSA3=1; //RA3 (AN6) set to analogue input
+    TRISAbits.TRISA3=1;
+    //Accelerometer z-channel Input
+    ANSELBbits.ANSB12=1; //RB12 (AN7) set to analogue input
+    TRISBbits.TRISB12=1;
     
     return;
 }

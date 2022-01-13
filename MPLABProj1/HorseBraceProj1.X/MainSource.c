@@ -111,6 +111,8 @@ void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
 
 void __ISR(_UART1_RX_VECTOR,IPL7SOFT) UART1Handler(void)
 {
+    //UART1 interrupts are top priority (above the ADC)
+    //This means that Bluetooth commands take precedence over all other interrupts (the ADC)
     //Interrupt for UART1 generate UART when data is received
     char dataUART1;
     

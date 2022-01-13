@@ -1,10 +1,10 @@
 
 #include <proc/p32mm0064gpl036.h>
 
+#include "ADC_HeaderFile.h"
+//--------------------------<ADC Configuration>-----------------------------
 
-//--------------------------<ADC Init>-----------------------------
-
-void initADC(void)
+void configureADC(void)
 {
     /*
      * ADC Sampling frequency is set to 248.14 Hz
@@ -42,5 +42,52 @@ void initADC(void)
     //ADC clock TAD=ADCS*2*Tpb where ADCS=248
     AD1CON3bits.ADCS=248; 
     
+    //Set the sample time to 13*TAD (1/248.14 Hz)
+    AD1CON3bits.SAMC=13;    
+    
+    //Enable sampling automatically after each conversion is complete
+    AD1CON1bits.ASAM=1;
+    
+    //Set to auto conversion trigger
+    AD1CON1bits.SSRC=7; 
+    
+    //Continues module operation in idle mode
+    AD1CON1bits.SIDL=0;
+    
+    //Using 12bit ADC operation
+    AD1CON1bits.MODE12=1;
+    
+    
+    //Data Output format is 12 bit unsigned integer 
+    AD1CON1bits.FORM=0b000;
+    
+    //Voltage reference uses Vr+=AVdd (3.3 V) and Vr-=AVss (0V)
+    AD1CON2bits.VCFG=0b000;
+    
+    
     return;
+}
+
+
+//-----------------------------<ADC Control>-----------------------------------
+void ADC_ON(void)
+{
+    //Turns on the ADC module
+    AD1CON1bits.ON=1;
+    //Starts the first sampling cycle
+    AD1CON1bits.SAMP=1;
+    
+    //Setting the interrupts for the ADC module
+    IEC0bits.AD1IE=1; //Enables interrupts from the ADC module
+    
+    return;
+}
+
+void ADC_OFF(void)
+{
+    //Turns the ADC module off
+    AD1CON1bits.ON=0;
+    
+    //Disables interrupts from the ADC module
+    IEC0bits.AD1IE=0;
 }

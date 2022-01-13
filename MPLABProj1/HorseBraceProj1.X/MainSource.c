@@ -42,80 +42,38 @@
 #pragma config CP = OFF                 // Code Protection Enable bit (Code protection is disabled)
 
 #include <xc.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <stdio.h>       //Standard library
+#include <string.h>      //Library for string comparisons
+#include <stdlib.h>     
+#include <sys/attribs.h> //Library for interrupt macros
 
+//Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
-
+#include "ADC_HeaderFile.h"
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
-void writeGreen(char state);
-void writeRed(char state);
 
+
+//-------------------<Main>--------------------------
 int main(int argc, char** argv) {
+    
+    //----------------<Initializing Local Variables>-----------------
     long BaudRate = 9600; 
     long FPB=8000000;   //Peripheral clock speed is 32 MHz 
     
     //---------------------<Configuring Pins>-----------------
-    ConfigurePins(); // Configuring the pinse
+    ConfigurePins(); // Configuring the pins
     //---------------<Initializing Peripherals>----------------
     
     initUART(BaudRate,FPB); //Initializes the UART Module
-    
-    //----------------<Initializing Variables>-----------------
-    char DataUART[200]; //String that will contain the data from the UART module
-    int length; //Length of the string returned by the UART module
-    //---------------<Initializing Pin Values>-----------------
-    writeGreen(0);  //Green led is off
-    writeRed(0);    //Red LED is off
-    
+    configureADC(); //configures the ADC
+    ADC_ON();
+    //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
     
     while(1){
-        ANSELBbits.
-        char dataChar;  //Char Read From Bluetooth Module
-        //while(CheckBluetoothStatus()!=0); //Loops until the bluetooth module is ready for use (0==ready for use)
-        //WriteChar('G');
-        
-        dataChar=ReadChar();    //Reads Character from bluetooth module
-        if(dataChar=='G')
-        {
-            writeGreen(1);  //Turns green light on 
-            writeRed(0);    //Turns red light off
-        }
-        else if(dataChar=='R')
-        {
-            writeGreen(0);  //Turns green light off 
-            writeRed(1);    //Turns red light on
-        }
-        else
-        {
-            writeGreen(0);  //Turns green light off 
-            writeRed(0);    //Turns red light off
-        }   
         
         
-        
-        //The following is preliminary code to read a string
-        /* length=ReadString(DataUART);   //Waits until a string is read by the UART module and then string is stored in "DataUART"
-        
-        if(strcmp(DataUART,"Green"))
-        {
-            writeGreen(1);  //Turns green light on 
-            writeRed(0);    //Turns red light off
-        }
-        else if(strcmp(DataUART,"Red"))
-        {
-            writeGreen(0);  //Turns green light off 
-            writeRed(1);    //Turns red light on
-        }
-        else
-        {
-            writeGreen(0);  //Turns green light off 
-            writeRed(0);    //Turns red light off
-        }
-        */
        
                 
         
@@ -125,6 +83,32 @@ int main(int argc, char** argv) {
 }
 
 
+//---------------------------------<Interrupts>---------------------------------
+
+//~~~~~~~~~~~<ADC Interrupt>~~~~~~~~~~~~
+void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
+{
+    //This sets the ADC Interrupt to have a priority of 6
+    //"Soft" means that context is preserved using software instructions
+    
+    /*
+     * Put the interrupt handler here
+     * You can read the ADC with the following buffers (uncomment the following)
+     * ADCResultAN3=ADC1BUF0;
+     * ADCResultAN4=ADC1BUF1;
+     * ADCResultAN5=ADC1BUF2;
+     * ADCResultAN6=ADC1BUF3;
+     * ADCResultAN7=ADC1BUF4;
+     */
+       
+    
+    
+    IFS0bits.AD1IF=0; //Clears the intterupt flag
+}
+
+
+
+//------------------------------<Pin Configuration>-----------------------------
 void ConfigurePins(void)
 {
     //---------------------<Bluetooth Module Pins (UART1)>---------------------
@@ -161,17 +145,5 @@ void ConfigurePins(void)
     
     return;
 }
-
-void writeGreen(char state)
-{
-    LATBbits.LATB12=state; //Writes "state" value (0 or 1) to green LED
-    return;
-}
-
-void writeRed(char state)
-{
-    LATAbits.LATA3=state; //Writes "state" value (0 or 1) to red LED
-}
-
 
 

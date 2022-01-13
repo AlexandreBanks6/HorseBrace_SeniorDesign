@@ -72,13 +72,15 @@ void configureADC(void)
 //-----------------------------<ADC Control>-----------------------------------
 void ADC_ON(void)
 {
+    //Setting the interrupts for the ADC module
+    IFS0bits.AD1IF=0; //Clears the intterupt flag for ADC just to ensure we won't generate an interrupt right away
+    IEC0bits.AD1IE=1; //Enables interrupts from the ADC module
     //Turns on the ADC module
     AD1CON1bits.ON=1;
     //Starts the first sampling cycle
     AD1CON1bits.SAMP=1;
     
-    //Setting the interrupts for the ADC module
-    IEC0bits.AD1IE=1; //Enables interrupts from the ADC module
+    
     
     return;
 }

@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     ConfigurePins(); // Configuring the pins
     //---------------<Initializing Peripherals>----------------
     
-    initUART(BaudRate,FPB); //Initializes the UART Module
+    initUART(BaudRate,FPB); //Initializes the UART Module, turns it on, and sets up its interrupt
     configureADC(); //configures the ADC
     ADC_ON();
     //---------------<Initializing Pin Values>-----------------    
@@ -93,7 +93,8 @@ void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
     
     /*
      * Put the interrupt handler here
-     * You can read the ADC with the following buffers (uncomment the following)
+     * You can read the ADC with the following buffers (uncomment the following) 
+     * Reading the buffers need to happen before the interrupt flag is cleared
      * ADCResultAN3=ADC1BUF0;
      * ADCResultAN4=ADC1BUF1;
      * ADCResultAN5=ADC1BUF2;
@@ -106,6 +107,17 @@ void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
     IFS0bits.AD1IF=0; //Clears the intterupt flag
 }
 
+//~~~~~~~~~~~~~<UART1 Module Interrupt>~~~~~~~~~~~~~~~~
+
+void __ISR(_UART1_RX_VECTOR,IPL7SOFT) UART1Handler(void)
+{
+    //Interrupt for UART1 generate UART when data is received
+    char dataUART1;
+    
+    dataUART1=ReadChar(); //Must read in the data before we clear interrupt flag
+    
+    IFS0bits.U1RXIF=0; //Clears the interrupt flag
+}
 
 
 //------------------------------<Pin Configuration>-----------------------------

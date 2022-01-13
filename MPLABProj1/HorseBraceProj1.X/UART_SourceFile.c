@@ -27,9 +27,21 @@ void initUART(long BaudRate, long FPB) //Initializes the UART Module for 8N1 UAR
     U1MODEbits.STSEL=0; //One stop bit
     U1STAbits.UTXINV=0; //U1TX Idle state is "1"
     U1MODEbits.UEN=0b00; //U1TX and U1RX are enabled
+    
+    //-----------<Interrupts for UART1 Module>--------------------
+    U1STAbits.URXISEL=0b00; //Interrupt flag bit is asserted when the receive 
+                            //buffer is not empty 
+    //Enabling interrupt for the receiver-data-available interrupt
+    IFS0bits.U1RXIF=0; //Clears the interrupt flag (just to ensure)
+    IEC0bits.U1RXIE=1; //Enables the interrupts for the UART module
+    
+    
+    //Turning on UART1 module
     U1MODEbits.ON=1; //UART Peripheral is enabled
     U1STAbits.URXEN=1;  //UART1 receiver is enabled
     U1STAbits.UTXEN=1;  //UART1 transmitter is enabled
+    
+    
 }
 
 
@@ -60,7 +72,7 @@ int WriteString(char *string) //Function to send string over UART1
 //~~~~~~~~~~~~~~~~<Reading Character Using UART1>------------------------
 char ReadChar(void)             //Reads a single character from the UART1 RX
 {
-    U1STAbits.URXEN=1;  //UART1 receiver is enabled
+    U1STAbits.URXEN=1;  //UART1 receiver is enabled (ensures this)
     while(!U1STAbits.URXDA)
     {
         

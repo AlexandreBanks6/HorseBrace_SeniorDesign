@@ -46,6 +46,7 @@
 #include <string.h>      //Library for string comparisons
 #include <stdlib.h>     
 #include <sys/attribs.h> //Library for interrupt macros
+#include <cp0defs.h>
 
 //Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
@@ -63,13 +64,22 @@ int main(int argc, char** argv) {
     
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
+    
+        
+    
+    
     //---------------<Initializing Peripherals>----------------
     
     initUART(BaudRate,FPB); //Initializes the UART Module, turns it on, and sets up its interrupt
-    configureADC(); //configures the ADC
-    ADC_ON();
+    //configureADC(); //configures the ADC
+    //ADC_ON(); //Turns on the ADC
+    //--------------------<Enable Interrupts>-----------------
+   INTCONSET=_INTCON_MVEC_MASK; //Enables multi vector interrupts
+   __builtin_enable_interrupts(); //Enables multi vector interrupts.
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
+    
+
     
     while(1){
         
@@ -86,8 +96,8 @@ int main(int argc, char** argv) {
 //---------------------------------<Interrupts>---------------------------------
 
 //~~~~~~~~~~~<ADC Interrupt>~~~~~~~~~~~~
-void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
-{
+//void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
+//{
     //This sets the ADC Interrupt to have a priority of 6
     //"Soft" means that context is preserved using software instructions
     
@@ -104,12 +114,13 @@ void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
        
     
     
-    IFS0bits.AD1IF=0; //Clears the intterupt flag
-}
+    //IFS0bits.AD1IF=0; //Clears the intterupt flag
+//}
 
 //~~~~~~~~~~~~~<UART1 Module Interrupt>~~~~~~~~~~~~~~~~
 
 void __ISR(_UART1_RX_VECTOR,IPL7SOFT) UART1Handler(void)
+
 {
     //UART1 interrupts are top priority (above the ADC)
     //This means that Bluetooth commands take precedence over all other interrupts (the ADC)
@@ -118,9 +129,26 @@ void __ISR(_UART1_RX_VECTOR,IPL7SOFT) UART1Handler(void)
     
     dataUART1=ReadChar(); //Must read in the data before we clear interrupt flag
     
+    if(dataUART1=='I')
+    {
+        LATBbits.LATB10=1; //Turns on green LED
+    }
+    else if(dataUART1=='O')
+    {
+        LATBbits.LATB11=1; //Turns on red LED
+    }
+    else{
+        LATBbits.LATB10=0; //Turns off green LED
+        LATBbits.LATB11=0; //Turns off the red LED
+        
+    }
+    
+    
     IFS0bits.U1RXIF=0; //Clears the interrupt flag
 }
 
+
+//-----------------------------------<Functions>--------------------------------
 
 //------------------------------<Pin Configuration>-----------------------------
 void ConfigurePins(void)
@@ -156,6 +184,15 @@ void ConfigurePins(void)
     //Accelerometer z-channel Input
     ANSELBbits.ANSB12=1; //RB12 (AN7) set to analogue input
     TRISBbits.TRISB12=1;
+    
+    
+    //------------------------<Debugging Pins>-------------------------
+    
+    //Red LED
+    TRISBbits.TRISB11=0; //RB11 set to output to red led
+    
+    //Green LED
+    TRISBbits.TRISB10=0; //RB10 set to output to green led
     
     return;
 }

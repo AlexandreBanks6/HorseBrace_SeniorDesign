@@ -8,7 +8,7 @@ recording commands.
 %}
 clear
 clc
-ReHorseUI();
+
 %% Defining the app
 % fig=uifigure;
 % fig.Name="ReHORSE Tech";

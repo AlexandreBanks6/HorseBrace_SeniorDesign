@@ -38,8 +38,8 @@ void initUART(long BaudRate, long FPB) //Initializes the UART Module for 8N1 UAR
                             //buffer is not empty 
     //Enabling interrupt for the receiver-data-available interrupt
     
-    IPC5bits.U1RXIP=7; //Top priority for the UART1RX module
-    IPC5bits.U1RXIS=3; //Top subpriority for the UART1RX module
+    IPC5bits.U1RXIP=0b111; //Top priority for the UART1RX module
+    IPC5bits.U1RXIS=0b11; //Top subpriority for the UART1RX module
     IFS0bits.U1RXIF=0; //Clears the interrupt flag (just to ensure)
     IEC0bits.U1RXIE=1; //Enables the interrupts for the UART module
     
@@ -74,7 +74,7 @@ int WriteString(char *string) //Function to send string over UART1
 //~~~~~~~~~~~~~~~~<Reading Character Using UART1>------------------------
 char ReadChar(void)             //Reads a single character from the UART1 RX
 {
-    U1STAbits.URXEN=1;  //UART1 receiver is enabled (ensures this)
+    //U1STAbits.URXEN=1;  //UART1 receiver is enabled (ensures this)
     while(!U1STAbits.URXDA)
     {
         

@@ -56,70 +56,48 @@ void ConfigurePins(void);       //Function to configure pins
 
 
 //-------------------<Main>--------------------------
-int main(int argc, char** argv) {
+void main() {
     
-    //----------------<Initializing Local Variables>-----------------
+    //--------------------<Setting Up Interrupts>--------------------
+       __builtin_enable_interrupts(); //Enables global interrupts
+       INTCONbits.MVEC=1; //Interrupt controller configured for Multivectored mode
+    //----------------<Initializing Variables>-----------------
     long BaudRate = 9600; 
-    long FPB=8000000;   //Peripheral clock speed is 32 MHz 
+    long FPB=8000000;   //Peripheral clock speed is 8 MHz 
+    unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
     
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
-    
         
-    
-    
     //---------------<Initializing Peripherals>----------------
     
     initUART(BaudRate,FPB); //Initializes the UART Module, turns it on, and sets up its interrupt
-    //configureADC(); //configures the ADC
-    //ADC_ON(); //Turns on the ADC
-    //--------------------<Enable Interrupts>-----------------
-   INTCONSET=_INTCON_MVEC_MASK; //Enables multi vector interrupts
-   __builtin_enable_interrupts(); //Enables multi vector interrupts.
+    initADC(); //configures the ADC for 12-bit unsigned format where sampling is triggered when AD1CON1bits.SAMP=1
+                //The ADC scans the input from both flex sensors (AN3 and AN4), 
+                //It uses the Fpb for auto-scanning with 1e-6 between each scan
+
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
     
 
     
     while(1){
-        
+        ReadADC(&Flex1_AN3,&Flex2_AN4); //Finds the ADC values and stores it at the address of Flex1_AN3 and Flex2_AN4
         
        
                 
         
     }
 
-    return(EXIT_SUCCESS);
+    return;
 }
 
 
 //---------------------------------<Interrupts>---------------------------------
 
-//~~~~~~~~~~~<ADC Interrupt>~~~~~~~~~~~~
-//void __ISR(_ADC_VECTOR,IPL6SOFT) ADCHandler(void)
-//{
-    //This sets the ADC Interrupt to have a priority of 6
-    //"Soft" means that context is preserved using software instructions
-    
-    /*
-     * Put the interrupt handler here
-     * You can read the ADC with the following buffers (uncomment the following) 
-     * Reading the buffers need to happen before the interrupt flag is cleared
-     * ADCResultAN3=ADC1BUF0;
-     * ADCResultAN4=ADC1BUF1;
-     * ADCResultAN5=ADC1BUF2;
-     * ADCResultAN6=ADC1BUF3;
-     * ADCResultAN7=ADC1BUF4;
-     */
-       
-    
-    
-    //IFS0bits.AD1IF=0; //Clears the intterupt flag
-//}
-
 //~~~~~~~~~~~~~<UART1 Module Interrupt>~~~~~~~~~~~~~~~~
 
-void __ISR(_UART1_RX_VECTOR,IPL7SOFT) UART1Handler(void)
+void __ISR(_UART1_RX_VECTOR,IPL7AUTO) UART1Handler(void)
 
 {
     //UART1 interrupts are top priority (above the ADC)
@@ -131,21 +109,24 @@ void __ISR(_UART1_RX_VECTOR,IPL7SOFT) UART1Handler(void)
     
     if(dataUART1=='I')
     {
-        LATBbits.LATB10=1; //Turns on green LED
+        LATBbits.LATB7=1; //Turns on green LED
     }
     else if(dataUART1=='O')
     {
-        LATBbits.LATB11=1; //Turns on red LED
+        LATBbits.LATB3=1; //Turns on red LED
     }
-    else{
-        LATBbits.LATB10=0; //Turns off green LED
-        LATBbits.LATB11=0; //Turns off the red LED
+   else{
+        LATBbits.LATB3=0; //Turns off green LED
+        LATBbits.LATB7=0; //Turns off the red LED
         
     }
+   
     
     
     IFS0bits.U1RXIF=0; //Clears the interrupt flag
 }
+
+
 
 
 //-----------------------------------<Functions>--------------------------------
@@ -189,10 +170,11 @@ void ConfigurePins(void)
     //------------------------<Debugging Pins>-------------------------
     
     //Red LED
-    TRISBbits.TRISB11=0; //RB11 set to output to red led
+    ANSELBbits.ANSB3=0; //RB3 is digital
+    TRISBbits.TRISB3=0; //RB3 set to output to red led
     
-    //Green LED
-    TRISBbits.TRISB10=0; //RB10 set to output to green led
+    //Green LEDd
+    TRISBbits.TRISB7=0; //RB4 set to output to green led
     
     return;
 }

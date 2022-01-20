@@ -65,6 +65,8 @@ void main() {
     long BaudRate = 9600; 
     long FPB=8000000;   //Peripheral clock speed is 8 MHz 
     unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
+    unsigned int long ADCThresh; //Threshold for ADC values
+    ADCThresh=1000; //Max is 4096
     
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
@@ -84,8 +86,31 @@ void main() {
     while(1){
         ReadADC(&Flex1_AN3,&Flex2_AN4); //Finds the ADC values and stores it at the address of Flex1_AN3 and Flex2_AN4
         
+     //This is code to debug the ADC              
+       if((Flex1_AN3>ADCThresh)&&(Flex2_AN4>ADCThresh))
+        {
+            LATBbits.LATB7=1; //Turns on green LED
+            LATBbits.LATB3=1; //Turns on red LED
+        } 
+        else if(Flex1_AN3>ADCThresh)
+        {
+            LATBbits.LATB7=1; //Turns on green LED
+            LATBbits.LATB3=0; //Turns off red LED
+            
+        }
+        else if(Flex2_AN4>ADCThresh)
+        {
+            LATBbits.LATB3=1; //Turns on red LED
+            LATBbits.LATB7=0; //Turns off green LED
+        }
+        else
+        {
+            LATBbits.LATB7=0; //Turns off green LED
+            LATBbits.LATB3=0; //Turns off red LED
+        }
        
-                
+        
+        
         
     }
 
@@ -156,15 +181,6 @@ void ConfigurePins(void)
     //Flex Sensor 2 Input
     ANSELBbits.ANSB2=1; //RB2 (AN4) set to analogue input
     TRISBbits.TRISB2=1;
-    //Accelerometer x-channel Input
-    ANSELAbits.ANSA2=1; //RA2 (AN5) set to analogue input
-    TRISAbits.TRISA2=1;
-    //Accelerometer y-channel Input
-    ANSELAbits.ANSA3=1; //RA3 (AN6) set to analogue input
-    TRISAbits.TRISA3=1;
-    //Accelerometer z-channel Input
-    ANSELBbits.ANSB12=1; //RB12 (AN7) set to analogue input
-    TRISBbits.TRISB12=1;
     
     
     //------------------------<Debugging Pins>-------------------------

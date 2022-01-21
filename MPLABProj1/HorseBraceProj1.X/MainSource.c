@@ -153,6 +153,16 @@ void __ISR(_UART1_RX_VECTOR,IPL7AUTO) UART1Handler(void)
 
 
 
+//~~~~~~~~~~~~~<Timer1 Interrupt>~~~~~~~~~~~~~~~~
+
+void __ISR(_TIMER_1_VECTOR, IPL6AUTO) Timer1Handler(void)
+{
+    
+    
+    
+    
+}
+
 
 //-----------------------------------<Functions>--------------------------------
 
@@ -196,3 +206,36 @@ void ConfigurePins(void)
 }
 
 
+//-------------------------<Timer 1 Functions>----------------------
+void StopTimer1(void)
+{
+    T1CON.ON = 0;       //Disable Timer1
+}
+
+void StartTimer1(void)
+{
+    T1CON.ON = 1;       //Enable Timer1
+}
+
+void DisableTimer1Interrupt(void)
+{
+    IEC0.T1IE = 0;
+}
+
+void EnableTimer1Interrupt(void)
+{
+    IEC0.T1IE = 1;
+}
+
+void InitializeTimer1(void)
+{
+    StopTimer1();
+    
+    TMR1 = 0x0000;      //Reset Timer 1 Value
+    T1CON.TCKPS = 1;    //Set Prescalar to 1:8
+    PR1 = 9999;         //Interrupt every 0.020 seconds
+    
+    IEC0.T1IE = 1;       //Enable Timer1 Interrupt
+    IFS0.T1IF = 0;       //Clear Timer1 Interrupt Flag
+}
+      

@@ -50,7 +50,8 @@
 
 //Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
-#include "ADC_HeaderFile.h"
+#include "ADC_HeaderFile.h"     //Header file for ADC functions (with flex sensors)
+#include "SPI_HeaderFile.h"     //Header file for SPI interface with SD card and accelerometer
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
 
@@ -77,6 +78,8 @@ void main() {
     initADC(); //configures the ADC for 12-bit unsigned format where sampling is triggered when AD1CON1bits.SAMP=1
                 //The ADC scans the input from both flex sensors (AN3 and AN4), 
                 //It uses the Fpb for auto-scanning with 1e-6 between each scan
+    Configure_SPI2(); //Configures SPI2 peripheral to use 2 MHz communication with the accelerometer module, and using 16-bit communication
+    ConfigureAccelerometer(); //Configures the accelerometer to function in normal mode with 1000 Hz data aquisition
 
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)

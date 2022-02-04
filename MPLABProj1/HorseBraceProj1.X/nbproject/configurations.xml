@@ -17,6 +17,7 @@
       <itemPath>MainSource.c</itemPath>
       <itemPath>UART_SourceFile.c</itemPath>
       <itemPath>ADC_SourceFile.c</itemPath>
+      <itemPath>SPI_SourceFile.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

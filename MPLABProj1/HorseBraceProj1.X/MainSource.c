@@ -84,36 +84,9 @@ void main() {
 
     
     while(1){
-        ReadADC(&Flex1_AN3,&Flex2_AN4); //Finds the ADC values and stores it at the address of Flex1_AN3 and Flex2_AN4
-        
-     //This is code to debug the ADC              
-       if((Flex1_AN3>ADCThresh)&&(Flex2_AN4>ADCThresh))
-        {
-            LATBbits.LATB7=1; //Turns on green LED
-            LATBbits.LATB3=1; //Turns on red LED
-        } 
-        else if(Flex1_AN3>ADCThresh)
-        {
-            LATBbits.LATB7=1; //Turns on green LED
-            LATBbits.LATB3=0; //Turns off red LED
-            
-        }
-        else if(Flex2_AN4>ADCThresh)
-        {
-            LATBbits.LATB3=1; //Turns on red LED
-            LATBbits.LATB7=0; //Turns off green LED
-        }
-        else
-        {
-            LATBbits.LATB7=0; //Turns off green LED
-            LATBbits.LATB3=0; //Turns off red LED
-        }
-       
-        
-        
-        
+    
     }
-
+        
     return;
 }
 

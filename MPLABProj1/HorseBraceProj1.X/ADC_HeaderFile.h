@@ -6,7 +6,7 @@
  */
 
 #ifndef ADC_HEADERFILE_H   //Guard condition so that contents of this file are not included more than once
-#define	UART_HEADERFILE_H
+#define	ADC_HEADERFILE_H
 #include <xc.h>
 
 void initADC(void); //Configures the ADC

@@ -32,7 +32,7 @@ void Configure_SPI2(void){
     RXData=SPI2BUF;
     
     //Clear ENHBUF to use standard buffer mode
-    SPI1CONbits.ENHBUF=0; //Enhanced buffer mode is disabled
+    SPI2CONbits.ENHBUF=0; //Enhanced buffer mode is disabled
     
     //Write the Baud Rate Register
     SPI2BRG=0x1; //Use Fpb/4=2MHz for communication

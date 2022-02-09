@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=MainSource.c UART_SourceFile.c ADC_SourceFile.c SPI_SourceFile.c
+SOURCEFILES_QUOTED_IF_SPACED=MainSource.c UART_SourceFile.c ADC_SourceFile.c SPI_SourceFile.c SDCard_SourceFile.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/MainSource.o ${OBJECTDIR}/UART_SourceFile.o ${OBJECTDIR}/ADC_SourceFile.o ${OBJECTDIR}/SPI_SourceFile.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/MainSource.o.d ${OBJECTDIR}/UART_SourceFile.o.d ${OBJECTDIR}/ADC_SourceFile.o.d ${OBJECTDIR}/SPI_SourceFile.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/MainSource.o ${OBJECTDIR}/UART_SourceFile.o ${OBJECTDIR}/ADC_SourceFile.o ${OBJECTDIR}/SPI_SourceFile.o ${OBJECTDIR}/SDCard_SourceFile.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/MainSource.o.d ${OBJECTDIR}/UART_SourceFile.o.d ${OBJECTDIR}/ADC_SourceFile.o.d ${OBJECTDIR}/SPI_SourceFile.o.d ${OBJECTDIR}/SDCard_SourceFile.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/MainSource.o ${OBJECTDIR}/UART_SourceFile.o ${OBJECTDIR}/ADC_SourceFile.o ${OBJECTDIR}/SPI_SourceFile.o
+OBJECTFILES=${OBJECTDIR}/MainSource.o ${OBJECTDIR}/UART_SourceFile.o ${OBJECTDIR}/ADC_SourceFile.o ${OBJECTDIR}/SPI_SourceFile.o ${OBJECTDIR}/SDCard_SourceFile.o
 
 # Source Files
-SOURCEFILES=MainSource.c UART_SourceFile.c ADC_SourceFile.c SPI_SourceFile.c
+SOURCEFILES=MainSource.c UART_SourceFile.c ADC_SourceFile.c SPI_SourceFile.c SDCard_SourceFile.c
 
 
 
@@ -131,6 +131,12 @@ ${OBJECTDIR}/SPI_SourceFile.o: SPI_SourceFile.c  .generated_files/9ff1cda09bb9b7
 	@${RM} ${OBJECTDIR}/SPI_SourceFile.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/SPI_SourceFile.o.d" -o ${OBJECTDIR}/SPI_SourceFile.o SPI_SourceFile.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/SDCard_SourceFile.o: SDCard_SourceFile.c  .generated_files/f0135cb32b711c1282629edbeea3acd109bd496.flag .generated_files/5476a8ba234974ffa0ea0daeb639b475345adc30.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/SDCard_SourceFile.o.d 
+	@${RM} ${OBJECTDIR}/SDCard_SourceFile.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/SDCard_SourceFile.o.d" -o ${OBJECTDIR}/SDCard_SourceFile.o SDCard_SourceFile.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 else
 ${OBJECTDIR}/MainSource.o: MainSource.c  .generated_files/6c3ce3dc08f498b07ab73f0538c98c67bf03c680.flag .generated_files/5476a8ba234974ffa0ea0daeb639b475345adc30.flag
 	@${MKDIR} "${OBJECTDIR}" 
@@ -155,6 +161,12 @@ ${OBJECTDIR}/SPI_SourceFile.o: SPI_SourceFile.c  .generated_files/63fd2dee247ab4
 	@${RM} ${OBJECTDIR}/SPI_SourceFile.o.d 
 	@${RM} ${OBJECTDIR}/SPI_SourceFile.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/SPI_SourceFile.o.d" -o ${OBJECTDIR}/SPI_SourceFile.o SPI_SourceFile.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/SDCard_SourceFile.o: SDCard_SourceFile.c  .generated_files/2bf2725de9c4848e5cd9277421ab5f4e352c81bf.flag .generated_files/5476a8ba234974ffa0ea0daeb639b475345adc30.flag
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/SDCard_SourceFile.o.d 
+	@${RM} ${OBJECTDIR}/SDCard_SourceFile.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/SDCard_SourceFile.o.d" -o ${OBJECTDIR}/SDCard_SourceFile.o SDCard_SourceFile.c    -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
 endif
 

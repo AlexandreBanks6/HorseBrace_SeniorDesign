@@ -55,7 +55,6 @@
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
 
-
 //-------------------<Main>--------------------------
 void main() {
     
@@ -83,11 +82,12 @@ void main() {
 
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
-    
+    Write_CS_SD(1); //Drives CS pin high
 
     
     while(1){
     
+        
     }
         
     return;
@@ -168,6 +168,17 @@ void ConfigurePins(void)
     ANSELBbits.ANSB2=1; //RB2 (AN4) set to analogue input
     TRISBbits.TRISB2=1;
     
+    
+    //-------------------------<SD Card Pins>-------------------------
+    TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card
+    
+    ANSELBbits.ANSB14=0; //Digital pin
+    TRISBbits.TRISB14=1; //SDI1 (MISO) for SD card
+   
+    TRISBbits.TRISB8=0; //SCK1 (clock) for SD card
+    
+    ANSELBbits.ANSB15=0; //Digital pin
+    TRISBbits.TRISB15=0; //SS1 (chip select) for SD card
     
     //------------------------<Debugging Pins>-------------------------
     

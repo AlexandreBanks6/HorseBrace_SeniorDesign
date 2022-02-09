@@ -19,6 +19,7 @@
       <itemPath>ADC_SourceFile.c</itemPath>
       <itemPath>SPI_SourceFile.c</itemPath>
       <itemPath>SPI_HeaderFile.h</itemPath>
+      <itemPath>SDCard_SourceFile.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

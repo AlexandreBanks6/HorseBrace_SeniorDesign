@@ -4,7 +4,7 @@
 //~~~~~~~~~~~~~~<Constant Definitions>~~~~~~~~~~~~~~~~~~
 #define CMD0 0 
 
-//-------------------------<SPI1 for Accelerometer>----------------------------
+//-------------------------<SPI1 for SD Card>----------------------------
 void Configure_SPI1(int BRGDiv){
     //Setting up the SPI2 module for master mode operation
     //BRGDiv=15 (for 250 KHz transmission)
@@ -59,7 +59,7 @@ unsigned char SPI_transmit(unsigned char DataTX){
     //Transmits a byte
     unsigned char dataRX;
     SPI1BUF=DataTX; //Data to be transmitted is written to the SPI2BUF register, automatically cleared in hardware
-    while(SPI1STATbits.SPITBE~=1); //Loops while the transmit buffer is not empty (waits for it to be empty)
+    while(!SPI1STATbits.SPITBE); //Loops while the transmit buffer is not empty (waits for it to be empty)
     dataRX=SPI1BUF;
     return(dataRX);
     
@@ -68,7 +68,7 @@ unsigned char SPI_transmit(unsigned char DataTX){
 unsigned char SPI_receive(void){
     unsigned char DataRX;
     SPI1BUF=0xff; //Transmits dummy byte
-    while(SPI1STATbits.SPIRBF~=1); //Loops while the receive buffer full status bit is 0 (empty)
+    while(!SPI1STATbits.SPIRBF); //Loops while the receive buffer full status bit is 0 (empty)
     DataRX=SPI1BUF; //Reads the SPI2 buffer and clears the SPIRBF bit
     return(DataRX);
 }
@@ -90,7 +90,7 @@ void Write_CS_SD(int data){
 unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
 {
     unsigned char response, retry=0, status;
-    
+    int SDHC_flag=0;
     if(SDHC_flag==0){ //Convert the block address into a corresponding byte address by shifting left by 9 bits
         if(cmd==READ_SINGLE_BLOCK ||
            cmd==READ_MULTIPLE_BLOCKS ||

@@ -51,9 +51,22 @@
 //Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
 #include "ADC_HeaderFile.h"     //Header file for ADC functions (with flex sensors)
-#include "SPI_HeaderFile.h"     //Header file for SPI interface with SD card and accelerometer
+#include "SPI_HeaderFile.h"     //Header file for SPI interface with accelerometer
+#include "SDCard_HeaderFile_New.h" //Header file for SD card interface
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
+
+
+//--------------<Define Global Variables>------------
+
+//~~~~~~~~~~~~~~~~~<SD Card Variables>~~~~~~~~~~~~~~~
+#define B_SIZE 512 //Size of data block for SD card
+char data[B_SIZE];
+char buffer[B_SIZE];
+
+//These are for debugging the SD card
+#define START_ADDRESS 10000 //start block address
+#define N_BLOCKS 1000 //Number of blocks we are writing to on SD card
 
 //-------------------<Main>--------------------------
 void main() {
@@ -62,31 +75,66 @@ void main() {
        __builtin_enable_interrupts(); //Enables global interrupts
        INTCONbits.MVEC=1; //Interrupt controller configured for Multivectored mode
     //----------------<Initializing Variables>-----------------
-    long BaudRate = 9600; 
+    long BaudRate = 9600; //Baud rate for UART
     long FPB=8000000;   //Peripheral clock speed is 8 MHz 
     unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
-    unsigned int long ADCThresh; //Threshold for ADC values
-    ADCThresh=1000; //Max is 4096
+    
+    //SD Card
+    int i,r;
+    LBA addr;
+    
+    
     
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
         
     //---------------<Initializing Peripherals>----------------
     
+    //UART
     initUART(BaudRate,FPB); //Initializes the UART Module, turns it on, and sets up its interrupt
+    
+    //ADC
     initADC(); //configures the ADC for 12-bit unsigned format where sampling is triggered when AD1CON1bits.SAMP=1
                 //The ADC scans the input from both flex sensors (AN3 and AN4), 
                 //It uses the Fpb for auto-scanning with 1e-6 between each scan
+    
+    //Accelerometer
     Configure_SPI2(); //Configures SPI2 peripheral to use 2 MHz communication with the accelerometer module, and using 16-bit communication
     ConfigureAccelerometer(); //Configures the accelerometer to function in normal mode with 1000 Hz data aquisition
-
+    
+    //SD Card
+    Write_CS_SD(1); //Drives CS pin high for the SD card
+    Configure_SPI1(15); //Configures the SPI1 peripheral for data transfer with SD card
+    r=initSD(); //Initializes the SD card
+    /*
+    if(r){ //Include action here to show there is an error in the SD card
+        
+    }
+     */
+    
+    //"Data" to send over SD card
+    for(i=0;i<B_SIZE;i++){
+        data[i]=i;
+    }
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
-    Write_CS_SD(1); //Drives CS pin high
+    
 
     
     while(1){
+        //Testing writing data to SD Card
+        addr=START_ADDRESS;
+        for(i=0;i<N_BLOCKS;i++)
+        {
+            if(!writeSECTOR(addr+i,data)) //Writes the data for testing SD card
+            {//Writing failed
+                while(1){
+                    //Pause here
+                }
+            }
+        }
     
+        
         
     }
         
@@ -170,15 +218,18 @@ void ConfigurePins(void)
     
     
     //-------------------------<SD Card Pins>-------------------------
-    TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card
+    //TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card (don't need to initialize these because they are driven directly by peripheral)
     
-    ANSELBbits.ANSB14=0; //Digital pin
-    TRISBbits.TRISB14=1; //SDI1 (MISO) for SD card
+    //ANSELBbits.ANSB14=0; //Digital pin
+    //TRISBbits.TRISB14=1; //SDI1 (MISO) for SD card
    
-    TRISBbits.TRISB8=0; //SCK1 (clock) for SD card
+    //TRISBbits.TRISB8=0; //SCK1 (clock) for SD card
     
     ANSELBbits.ANSB15=0; //Digital pin
     TRISBbits.TRISB15=0; //SS1 (chip select) for SD card
+    
+    ANSELAbits.ANSA0=0; //Digital pin
+    TRISAbits.TRISA0=1; //CD (card detect) set as input
     
     //------------------------<Debugging Pins>-------------------------
     
@@ -196,22 +247,22 @@ void ConfigurePins(void)
 //-------------------------<Timer 1 Functions>----------------------
 void StopTimer1(void)
 {
-    T1CON.ON = 0;       //Disable Timer1
+    T1CONbits.ON = 0;       //Disable Timer1
 }
 
 void StartTimer1(void)
 {
-    T1CON.ON = 1;       //Enable Timer1
+    T1CONbits.ON = 1;       //Enable Timer1
 }
 
 void DisableTimer1Interrupt(void)
 {
-    IEC0.T1IE = 0;
+    IEC0bits.T1IE = 0;
 }
 
 void EnableTimer1Interrupt(void)
 {
-    IEC0.T1IE = 1;
+    IEC0bits.T1IE = 1;
 }
 
 void InitializeTimer1(void)
@@ -219,10 +270,10 @@ void InitializeTimer1(void)
     StopTimer1();
     
     TMR1 = 0x0000;      //Reset Timer 1 Value
-    T1CON.TCKPS = 1;    //Set Prescalar to 1:8
+    T1CONbits.TCKPS = 1;    //Set Prescalar to 1:8
     PR1 = 9999;         //Interrupt every 0.020 seconds
     
-    IEC0.T1IE = 1;       //Enable Timer1 Interrupt
-    IFS0.T1IF = 0;       //Clear Timer1 Interrupt Flag
+    IEC0bits.T1IE = 1;       //Enable Timer1 Interrupt
+    IFS0bits.T1IF = 0;       //Clear Timer1 Interrupt Flag
 }
       

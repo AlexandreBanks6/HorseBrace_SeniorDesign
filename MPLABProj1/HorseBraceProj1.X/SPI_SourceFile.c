@@ -65,7 +65,7 @@ void Configure_SPI2(void){
 }
 
 void WriteACC_basic(int DataTX){
-    while(SPI2STATbits.SPITBE~=1); //Loops while the transmit buffer is not empty (waits for it to be empty)
+    while(!SPI2STATbits.SPITBE); //Loops while the transmit buffer is not empty (waits for it to be empty)
     SPI2BUF=DataTX; //Data to be transmitted is written to the SPI2BUF register, automatically cleared in hardware
     
 }
@@ -73,7 +73,7 @@ void WriteACC_basic(int DataTX){
 int ReadACC_basic(void){
     int DataRX;
     
-    while(SPI2STATbits.SPIRBF~=1); //Loops while the receive buffer full status bit is 0 (empty)
+    while(!SPI2STATbits.SPIRBF); //Loops while the receive buffer full status bit is 0 (empty)
     DataRX=SPI2BUF; //Reads the SPI2 buffer and clears the SPIRBF bit
     return(DataRX);
 }
@@ -140,7 +140,7 @@ int * Read_Acc_XYZ(void){
     
     
     //~~~~~~~~~~~~~~~~~~~~~<Waits for New Data>~~~~~~~~~~~~~~~~~~~~~~~~~~
-    while(DatAvailable~=1){ //Loops while the data available status pin is not 1
+    while(!DatAvailable){ //Loops while the data available status pin is not 1
         StatusReg=ACC_Read_Protocol(STATUS_REG); //Reads the status register
         DatAvailable=StatusReg&0b00001000; //Waits until the data available bit is set        
     }

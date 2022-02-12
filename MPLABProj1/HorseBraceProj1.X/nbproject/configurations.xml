@@ -235,6 +235,8 @@
         <property key="programoptions.usehighvoltageonmclr" value="false"/>
         <property key="programoptions.uselvpprogramming" value="true"/>
       </PKOBSKDEPlatformTool>
+      <item path="SDCard_HeaderFile_New.h" ex="true" overriding="false">
+      </item>
       <item path="SDCard_SourceFile.c" ex="true" overriding="false">
         <C32>
         </C32>
@@ -250,6 +252,8 @@
         </C32CPP>
         <C32Global>
         </C32Global>
+      </item>
+      <item path="SDCard_SourceFile_New.c" ex="true" overriding="false">
       </item>
       <Simulator>
         <property key="codecoverage.enabled" value="Disable"/>
@@ -711,6 +715,10 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+      <item path="fileio.c" ex="true" overriding="false">
+      </item>
+      <item path="fileio_header.h" ex="true" overriding="false">
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>

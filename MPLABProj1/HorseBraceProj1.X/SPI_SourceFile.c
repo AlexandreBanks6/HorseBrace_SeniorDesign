@@ -2,23 +2,6 @@
 #include <proc/p32mm0064gpl036.h>
 #include "SPI_HeaderFile.h"
 
-//-----------------------<Accelerometer Register Addresses>-------------------
-#define CTRL_REG1 0x20
-#define CTRL_REG2 0x21
-#define CTRL_REG3 0x22
-#define CTRL_REG4 0x23
-#define CTRL_REG5 0x24
-#define HP_FILTER_RESET 0x25
-#define STATUS_REG 0x27
-#define OUT_X_L 0x28
-#define OUT_X_H 0x29
-#define OUT_Y_L 0x2A
-#define OUT_Y_H 0x2B
-#define OUT_Z_L 0x2C
-#define OUT_Z_H 0x2D
-
-
-
 //-------------------------<SPI2 for Accelerometer>----------------------------
 void Configure_SPI2(void){
     //Setting up the SPI2 module for master mode operation
@@ -56,6 +39,15 @@ void Configure_SPI2(void){
     SPI2CONbits.MODE16=1;
     SPI2CONbits.MODE32=0; 
     
+    //Input data is sampled at the end of data output time (on the rising edge of clock)
+    SPI2CONbits.SMP=1; 
+    
+    //Idle Clock state is high, active state is a low level
+    SPI2CONbits.CKP=1;
+    
+    //Serial output data changes on transition from idle clock state to active clock state
+    SPI2CONbits.CKE=0;
+    
     
     //Enable the SPI operation
     SPI2CONbits.ON=1;
@@ -65,9 +57,9 @@ void Configure_SPI2(void){
 }
 
 void WriteACC_basic(int DataTX){
-    while(!SPI2STATbits.SPITBE); //Loops while the transmit buffer is not empty (waits for it to be empty)
-    SPI2BUF=DataTX; //Data to be transmitted is written to the SPI2BUF register, automatically cleared in hardware
     
+    SPI2BUF=(DataTX&0xFFFF); //Data to be transmitted is written to the SPI2BUF register, automatically cleared in hardware
+    while(!SPI2STATbits.SPITBE); //Loops while the transmit buffer is not empty (waits for it to be empty)
 }
 
 int ReadACC_basic(void){
@@ -78,10 +70,17 @@ int ReadACC_basic(void){
     return(DataRX);
 }
 
+void WriteCS_ACC(int data){
+    //Used to drive the CS pin of the accelerometer
+    LATBbits.LATB13=data&0x1; //Writes to the CS pin
+}
+
 void ACC_Write_Protocol(int Address, int data){
     int RW=0; //Writing to Accelerometer
     int MS=0; //Does not increment address
     int TransData;
+    WriteCS_ACC(0); //Drives CS pin low
+    
     data=data&0x00FF; //Keeps only first 8 bits of data
     TransData=(RW<<15)|(MS<<14)|(Address<<8)|(data); //16 bit data to be transmitted
     
@@ -89,6 +88,8 @@ void ACC_Write_Protocol(int Address, int data){
     
     int DataRX; //Used to clear receive buffer
     DataRX=ReadACC_basic();
+    
+    WriteCS_ACC(1); //Drives CS pin high
     
 }
 
@@ -99,6 +100,7 @@ int ACC_Read_Protocol(int Address){
     int MS=0; //Does not increment address
     int TransData; //Must first transmit data to accelerometer to notify which buffer is being read
     
+    WriteCS_ACC(0); //Drives CS pin low
     TransData=(RW<<15)|(MS<<14)|(Address<<8)|(0b00000000); //16 bit data to be transmitted
     
     WriteACC_basic(TransData); //16-bit Data is transmitted
@@ -107,6 +109,7 @@ int ACC_Read_Protocol(int Address){
     
     RXData=ReadACC_basic(); //Reads 16-bit data
     data=RXData&0x00FF; //Only keeps last 8 bits
+    WriteCS_ACC(1);//Drives CS pin high
     return(data);
 }
 

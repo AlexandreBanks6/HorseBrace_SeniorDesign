@@ -53,8 +53,8 @@
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
 #include "ADC_HeaderFile.h"     //Header file for ADC functions (with flex sensors)
 #include "SPI_HeaderFile.h"     //Header file for SPI interface with accelerometer
-#include "SDCard_HeaderFile_New.h" //Header file for SD card interface
-#include "fileio_header.h" //Header file for FAT file system library
+//#include "SDCard_HeaderFile_New.h" //Header file for SD card interface
+//#include "fileio_header.h" //Header file for FAT file system library
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
 
@@ -62,8 +62,8 @@ void ConfigurePins(void);       //Function to configure pins
 //--------------<Define Global Variables>------------
 
 //~~~~~~~~~~~~~~~~~<SD Card Variables>~~~~~~~~~~~~~~~
-#define B_SIZE 512 //Size of data block for SD card
-char data[B_SIZE];
+//#define B_SIZE 512 //Size of data block for SD card
+//char data[B_SIZE];
 //char buffer[B_SIZE];
 
 
@@ -77,15 +77,20 @@ void main(){
     //----------------<Initializing Variables>-----------------
     long BaudRate = 9600; //Baud rate for UART
     long FPB=8000000;   //Peripheral clock speed is 8 MHz 
-    unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
+    //unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
     
     //SD Card Variables
-    MFILE *fd; 
-    unsigned r;
-    int i;
-    char datpassed;
+   // MFILE *fd; 
+    //unsigned r;
+    //int i;
+    //char datpassed;
     
     
+    //Accelerometer variables
+    int *AccResult; //Will contain the accelerometer readings in three axis
+                    //XDat=*AccResult; YDat=*(AccResult+1);ZDat=*(AccResult+2);
+    int thresh=5; //Threshold for testing accelerometer to turn on LED (if it is greater it will turn on LED in that direction)
+    int DataRX;
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
         
@@ -109,9 +114,10 @@ void main(){
     
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
-    Write_CS_SD(1); //Drives cs pin on SD card low
+    //Write_CS_SD(1); //Drives cs pin on SD card low
     
     //----------------------<SD Card Test>----------------------------
+    /*
     //Initializes the DATA for testing
     datpassed=0;
     for(i=0;i<B_SIZE;i++){
@@ -133,9 +139,14 @@ void main(){
     
     unmount();
     
+     * */
+    
+    
     while(1){
-                
-        
+         //AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers
+        WriteACC_basic(0xCCCC);
+         //Used to clear receive buffer
+        //DataRX=ReadACC_basic();
     }
     
     return;
@@ -213,7 +224,20 @@ void ConfigurePins(void)
     //Flex Sensor 2 Input
     ANSELBbits.ANSB2=1; //RB2 (AN4) set to analogue input
     TRISBbits.TRISB2=1;
+    //---------------------<Accelerometer Pins>-----------------------
+    //Chip select (active low)
+    ANSELBbits.ANSB13=0; //Digital pin
+    TRISBbits.TRISB13=0; //CS for accelerometer
     
+    //Need to use peripheral pin select for the accelerometer pins
+    //Data in (SDI2)
+    RPINR11bits.SDI2R=18; //Connect SPI2 DI to pin 18
+    
+    //Outputs
+    //Data out (SDO2)
+    RPOR4bits.RP17R=3; //Connects SDO2 to RP17
+    //Clock out (SCK2)
+    RPOR2bits.RP12R=4; //Connects SCK2OUT to RP12
     
     //-------------------------<SD Card Pins>-------------------------
     //TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card (don't need to initialize these because they are driven directly by peripheral)
@@ -232,11 +256,16 @@ void ConfigurePins(void)
     //------------------------<Debugging Pins>-------------------------
     
     //Red LED
-    ANSELBbits.ANSB3=0; //RB3 is digital
-    TRISBbits.TRISB3=0; //RB3 set to output to red led
+    ANSELAbits.ANSA1=0; //Set as digital pin
+    TRISAbits.TRISA1=0; //RA1 set as output
     
-    //Green LEDd
-    TRISBbits.TRISB7=0; //RB4 set to output to green led
+    //Green LED
+    ANSELAbits.ANSA3=0; //set as digital pin
+    TRISAbits.TRISA3=0; //RA3 set as output
+    
+    //Yellow LED
+    TRISCbits.TRISC9=0; //RC9 set as digital output
+    
     
     return;
 }

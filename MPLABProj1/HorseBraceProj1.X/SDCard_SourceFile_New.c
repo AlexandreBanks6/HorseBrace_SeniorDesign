@@ -1,13 +1,13 @@
-#include <proc/p32mm0064gpl036.h>
-#include "SDCard_HeaderFile_New.h"
-
+#include <xc.h>
 //~~~~~~~~~~~~~~<Constant/Macro Definitions Definitions>~~~~~~~~~~~~~~~~~~
 #define readSPI() writeSPI(0xFF) //Function to read from the SPI (completed by writing a dummy byte)
 #define clockSPI() writeSPI(0xFF)
 #define disableSD() Write_CS_SD(1); clockSPI()
 #define enableSD() Write_CS_SD(0)
 
-// SD card commands
+// SD carde <proc/p32mm0064gpl036.h>
+#include "SDCard_HeaderFile_New.h"
+
 #define RESET 0 // a.k.a. GO_IDLE (CMD0)
 #define INIT 1 // a.k.a SEND_OP_COND (CMD1)
 #define READ_SINGLE 17 // read a block of data
@@ -16,7 +16,6 @@
 #define DATA_ACCEPT 0x05 //Response sent by SD card when data is accepted during write operations
 //Define a new type that is a 32-bit memory address
 typedef unsigned long LBA; //Logic block address, 32-bits
-
 //-------------------------<SPI1 for SD Card>----------------------------
 void Configure_SPI1(int BRGDiv){
     //Setting up the SPI1 module for master mode operation
@@ -254,3 +253,5 @@ int detectSD(void)
     return(!PORTAbits.RA0); //Returns 1 if it is detected and 0 if it is not detected
     
 }
+
+

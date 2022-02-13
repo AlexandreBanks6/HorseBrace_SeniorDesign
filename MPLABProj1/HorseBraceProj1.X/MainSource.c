@@ -87,10 +87,11 @@ void main(){
     
     
     //Accelerometer variables
-    int *AccResult; //Will contain the accelerometer readings in three axis
+    double *AccResult; //Will contain the accelerometer readings in three axis
                     //XDat=*AccResult; YDat=*(AccResult+1);ZDat=*(AccResult+2);
-    int thresh=5; //Threshold for testing accelerometer to turn on LED (if it is greater it will turn on LED in that direction)
-    int DataRX;
+    double thresh=3; //Threshold for testing accelerometer to turn on LED (if it is greater it will turn on LED in that direction)
+    
+    double XDat;
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
         
@@ -143,10 +144,25 @@ void main(){
     
     
     while(1){
-         //AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers
-        WriteACC_basic(0xCCCC);
-         //Used to clear receive buffer
-        //DataRX=ReadACC_basic();
+         AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers (using 100g max)
+        //ACC_Interface_basic(0xCC);
+         XDat=*AccResult; //X data
+         
+         if(XDat>1.0){
+             LATAbits.LATA1=1; //Red LED
+         }
+         if(XDat>3.0){
+             LATAbits.LATA3=1; //Green LED
+         }
+         if(XDat>5.0){
+             LATCbits.LATC9=1; //Yellow LED
+         }
+         else{
+             LATAbits.LATA1=0;
+             LATAbits.LATA3=0;
+             LATCbits.LATC9=0;
+         }
+         
     }
     
     return;

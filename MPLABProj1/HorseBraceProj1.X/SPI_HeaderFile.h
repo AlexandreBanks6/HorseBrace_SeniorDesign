@@ -25,13 +25,12 @@
 
 //----------------------------------<Prototypes>--------------------------------
 void Configure_SPI2(void);
-void WriteACC_basic(int DataTX);
-int ReadACC_basic(void);
+int ACC_Interface_basic(int DataTX);
 void WriteCS_ACC(int data);
 void ACC_Write_Protocol(int Address, int data);
 int ACC_Read_Protocol(int Address);
 void ConfigureAccelerometer(void);
-int * Read_Acc_XYZ(void);
+double * Read_Acc_XYZ(void);
 
 #endif	/* SPI_HEADERFILE_H */
 

@@ -48,6 +48,7 @@
 #include <sys/attribs.h> //Library for interrupt macros
 #include <cp0defs.h>
 #include <proc/p32mm0064gpl036.h>
+#include <math.h> //Has a bunch of useful math functions
 
 //Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
@@ -89,9 +90,6 @@ void main(){
     //Accelerometer variables
     double *AccResult; //Will contain the accelerometer readings in three axis
                     //XDat=*AccResult; YDat=*(AccResult+1);ZDat=*(AccResult+2);
-    double thresh=3; //Threshold for testing accelerometer to turn on LED (if it is greater it will turn on LED in that direction)
-    
-    double XDat;
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
         
@@ -114,7 +112,7 @@ void main(){
     
     
     //---------------<Initializing Pin Values>-----------------    
-    WriteKey(0); //The Bluetooth module is set to data mode (0)
+    //WriteKey(0); //The Bluetooth module is set to data mode (0)
     //Write_CS_SD(1); //Drives cs pin on SD card low
     
     //----------------------<SD Card Test>----------------------------
@@ -145,23 +143,7 @@ void main(){
     
     while(1){
          AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers (using 100g max)
-        //ACC_Interface_basic(0xCC);
-         XDat=*AccResult; //X data
-         
-         if(XDat>1.0){
-             LATAbits.LATA1=1; //Red LED
-         }
-         if(XDat>3.0){
-             LATAbits.LATA3=1; //Green LED
-         }
-         if(XDat>5.0){
-             LATCbits.LATC9=1; //Yellow LED
-         }
-         else{
-             LATAbits.LATA1=0;
-             LATAbits.LATA3=0;
-             LATCbits.LATC9=0;
-         }
+        
          
     }
     
@@ -271,17 +253,7 @@ void ConfigurePins(void)
     
     //------------------------<Debugging Pins>-------------------------
     
-    //Red LED
-    ANSELAbits.ANSA1=0; //Set as digital pin
-    TRISAbits.TRISA1=0; //RA1 set as output
-    
-    //Green LED
-    ANSELAbits.ANSA3=0; //set as digital pin
-    TRISAbits.TRISA3=0; //RA3 set as output
-    
-    //Yellow LED
-    TRISCbits.TRISC9=0; //RC9 set as digital output
-    
+       
     
     return;
 }

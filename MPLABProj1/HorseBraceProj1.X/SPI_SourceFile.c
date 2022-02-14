@@ -21,6 +21,7 @@ void Configure_SPI2(void){
     
     //Write the Baud Rate Register
     SPI2BRG=39; //Use Fpb/80=100 KHz for communication
+    //SPI2BRG=80;
     //Clear the Receive Overflow Flag Bit
     SPI2STATbits.SPIROV=0;
     
@@ -162,8 +163,8 @@ double * Read_Acc_XYZ(void){
     X_L=ACC_Read_Protocol(OUT_X_L); 
     X_H=ACC_Read_Protocol(OUT_X_H);
     X=(X_H<<8)|X_L;
-    if(X&(0x8000)==0x8000){ //Negative number
-        X=X|(0xFFFF0000);
+    if(((X&0x00008000)>>15)==1){ //Negative number
+        X+=0xFFFF0000;
         
     }
     AccResult[0]=0.00305*X;
@@ -172,8 +173,9 @@ double * Read_Acc_XYZ(void){
     Y_L=ACC_Read_Protocol(OUT_Y_L); 
     Y_H=ACC_Read_Protocol(OUT_Y_H);
     Y=(Y_H<<8)|Y_L;
-    if(Y&(0x8000)==0x8000){ //Negative number
-        Y=Y|(0xFFFF0000);
+    if(((Y&0x00008000)>>15)==1){ //Negative number
+        Y+=0xFFFF0000;
+        
     }
     AccResult[1]=0.00305*Y;
     
@@ -182,8 +184,8 @@ double * Read_Acc_XYZ(void){
     Z_L=ACC_Read_Protocol(OUT_Z_L); 
     Z_H=ACC_Read_Protocol(OUT_Z_H);
     Z=(Z_H<<8)|Z_L;
-    if(Z&(0x8000)==0x8000){ //Negative number
-        Z=Z|(0xFFFF0000);
+    if(((Z&0x00008000)>>15)==1){ //Negative number
+        Z+=0xFFFF0000;
         
     }
     AccResult[2]=0.00305*Z;

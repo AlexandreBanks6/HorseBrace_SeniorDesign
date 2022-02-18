@@ -1,12 +1,11 @@
 #include <proc/p32mm0064gpl036.h>
 
+#include "SDCard_HeaderFile.h"
 
-//~~~~~~~~~~~~~~<Constant Definitions>~~~~~~~~~~~~~~~~~~
-#define CMD0 0 
 
 //-------------------------<SPI1 for SD Card>----------------------------
-void Configure_SPI1(int BRGDiv){
-    //Setting up the SPI2 module for master mode operation
+void setupSPI(int BRGDiv){
+    //Setting up the SPI1 module for master mode operation
     //BRGDiv=15 (for 250 KHz transmission)
     //BRGDiv=0 (for 4 MHz transmission)
     char RXData; //Used to clear the SPI2 interrupt
@@ -25,7 +24,8 @@ void Configure_SPI1(int BRGDiv){
     SPI1STATbits.SPIROV=0;
     
     //~~~~~~~~~~~~~~~~<Writing the Control Register>~~~~~~~~~~~~~~~~~
-    SPI1CONbits.MSTEN=1; //Master Mode    
+    SPI1CONbits.MSTEN=1; //Master Mode
+    SPI1CONbits.MSSEN=0; //SS (CS) is not automatically driven during transmission
     // Framed SPI Disabled
     SPI1CONbits.FRMEN=0; 
     
@@ -36,6 +36,7 @@ void Configure_SPI1(int BRGDiv){
     //Falling Edge of Clock for data transmission
     SPI1CONbits.CKP=0; //Idle clock state = low level (0)
     SPI1CONbits.CKE=1; //Transitions from active clock state (1) to idle clock state (0)
+    SPI1CONbits.SMP=1; //Sampling point for the SD card input is at the end
     
     //Master Clock Enable Bit
     SPI1CONbits.MCLKSEL=0; //Uses Fpb=8MHz
@@ -73,14 +74,18 @@ unsigned char SPI_receive(void){
     return(DataRX);
 }
 
-void Write_DO_SD(int data){
-    
-    LATBbits.LATB14=(0x0001&data); 
+void Write_CS_SD(int data){
+    LATBbits.LATB15=data;
     return;
 }
 
-void Write_CS_SD(int data){
-    LATBbits.LATB8=data;
+
+void SD_CS_ASSERT(void){
+    LATBbits.LATB15=0;
+    return;
+}
+void SD_CS_DEASSERT(void){
+    LATBbits.LATB15=1;
     return;
 }
 
@@ -97,20 +102,20 @@ unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
            cmd==WRITE_SINGLE_BLOCK ||
            cmd==WRITE_MULTIPLE_BLOCKS ||
            cmd==ERASE_BLOCK_START_ADDR||
-           cmd==ERASE_BLOCK_END_ADDR ||)
+           cmd==ERASE_BLOCK_END_ADDR)
         {
             arg=arg<<9;
         }
     }
     
-    Write_CS_SD(0); //Drives CS pin from high to low
-    SPI_transmit(cmd+0x40); //Send command, first two bits are '01'
+    SD_CS_ASSERT(); //Drives CS pin from high to low
+    SPI_transmit(cmd|0x40); //Send command, first two bits are '01'
     SPI_transmit(arg>>24);
     SPI_transmit(arg>>16);
     SPI_transmit(arg>>8);
     SPI_transmit(arg);
     if(cmd==SEND_IF_COND){
-        SPI_transmit(0x87);
+        SPI_transmit(0x87); //For remaining commands, the CRC is ignored in SPI mode
     }
     else{
         SPI_transmit(0x95);
@@ -130,7 +135,7 @@ unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
         
     }
     SPI_receive(); //Extra 8 clock pulses
-    Write_CS_SD(1); //Drives CS pin from low to high
+    SD_CS_DEASSERT(); //Drives CS pin from low to high
     return response; //Returns the response from the SD card 
 }
 
@@ -147,7 +152,7 @@ unsigned char SD_init(void){
     }
 
     
-Write_CS_SD(0); //Drives the CS pin from high to low
+SD_CS_ASSERT(); //Drives the CS pin from high to low
 do
 {
     response=SD_sendCommand(GO_IDLE_STATE,0); //Sends the CMD0 command which is a software reset
@@ -156,7 +161,7 @@ do
         return 1; //There was a timeout when initializing (no card is detected)
     }
 }while(response!=0x01); //Loops until the card is in the idle state and we are good to go
-Write_CS_SD(1); //Drives CS pin high
+SD_CS_DEASSERT(); //Drives CS pin high
 //Clocks through 16 bits
 SPI_transmit(0xff);
 SPI_transmit(0xff);
@@ -215,10 +220,14 @@ unsigned char SD_erase(unsigned long startBlock,unsigned long totalBlocks)
     unsigned char response;
     response=SD_sendCommand(ERASE_BLOCK_START_ADDR,startBlock); //Sends the starting address of where to delete
     if(response!=0x00)
-        return response;
+        return(response);
+    response=SD_sendCommand(ERASE_BLOCK_END_ADDR,(startBlock+totalBlocks-1)); //send end block address
+    if(response!=0x00)
+        return(response);
+    
     response=SD_sendCommand(ERASE_SELECTED_BLOCKS,0); //Erases all the selected blocks
     if(response!=0x00) //error
-        return response;
+        return(response);
     return(0); //0 is the normal return
 }
 
@@ -234,7 +243,7 @@ unsigned char SD_writeSingleBlock(unsigned long startBlock) //This is to read a 
         return(response); //Error in writing to the block
         
     }
-    Write_CS_SD(0); //Drives CS pin from high to low
+    SD_CS_ASSERT(); //Drives CS pin from high to low
     SPI_transmit(0xfe); //Sends the start block token
     for(i=0;i<512;i++){
         SPI_transmit(buffer[i]); //Transmits the data to be sent (sends 512 bytes)
@@ -247,30 +256,55 @@ unsigned char SD_writeSingleBlock(unsigned long startBlock) //This is to read a 
     
     if((response&0x1f)!=0x05) //response=0x05 data is accepted, response=0x0B (data rejected due to CRC error), response=0x0D (data rejected due to write error)
     {
-        Write_CS_SD(1);
+        SD_CS_DEASSERT();
         return(response);
     }
     while(!SPI_receive()){ //Waits for the SD card to complete writing and go to idle state
         if(retry++>0xfffe) //Error in writing to SD card
             { 
-             Write_CS_SD(1);
+             SD_CS_DEASSERT();
              return(1);
             }
     }
     
-    Write_CS_SD(1); //Brings line from low to high
+    SD_CS_DEASSERT(); //Brings line from low to high
     
-    SPI_transmit(0xff); //Delay before reasserting the CS line
-    Write_CS_SD(0); //Re-asserts the CS line
-    
-    while()
+    return(0);
     
     
 }
 
 
-
-//-----------<Upgraded Functions for use with FAT16 File System>---------------
+unsigned char SD_readSingleBlock(unsigned long startBlock)
+{
+    unsigned char response;
+    unsigned int i, retry=0;
+    
+    response=SD_sendCommand(READ_SINGLE_BLOCK,startBlock); //Read a block command
+    if(response!=0x00)
+    {
+        return(response);
+    }
+    SD_CS_ASSERT();
+    retry=0;
+    while(SPI_receive()!=0xfe) //Wait for the start block token
+    {
+        if(retry++>0xfffe){
+            SD_CS_DEASSERT;
+            return(1); //Return if time-out
+        }
+    }
+    for(i=0;i<512;i++)
+    {
+        buffer[i]=SPI_receive();
+    }
+    SPI_receive(); //Receive incoming CRC (16-bit), CRC is ignored
+    SPI_receive();
+    
+    SPI_receive(); //Extra 8 clock pulses
+    //SD_CS_DEASSERT;
+    return(0);
+}
 
 
 

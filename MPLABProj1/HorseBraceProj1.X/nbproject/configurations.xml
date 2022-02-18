@@ -9,6 +9,7 @@
       <itemPath>SPI_HeaderFile.h</itemPath>
       <itemPath>SDCard_HeaderFile_New.h</itemPath>
       <itemPath>fileio_header.h</itemPath>
+      <itemPath>SDCard_HeaderFile.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -24,8 +25,6 @@
       <itemPath>SDCard_SourceFile.c</itemPath>
       <itemPath>SDCard_SourceFile_New.c</itemPath>
       <itemPath>fileio.c</itemPath>
-      <itemPath>mmcsd_m.c</itemPath>
-      <itemPath>fat_m.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -253,7 +252,7 @@
         <C32Global>
         </C32Global>
       </item>
-      <item path="SDCard_SourceFile.c" ex="true" overriding="false">
+      <item path="SDCard_SourceFile.c" ex="false" overriding="false">
         <C32>
         </C32>
         <C32-AR>

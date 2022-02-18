@@ -47,14 +47,14 @@
 #include <stdlib.h>     
 #include <sys/attribs.h> //Library for interrupt macros
 #include <cp0defs.h>
-#include <proc/p32mm0064gpl036.h>
+//#include <proc/p32mm0064gpl036.h>
 #include <math.h> //Has a bunch of useful math functions
 //Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
 #include "ADC_HeaderFile.h"     //Header file for ADC functions (with flex sensors)
 #include "SPI_HeaderFile.h"     //Header file for SPI interface with accelerometer
-#include "SDCard_HeaderFile_New.h" //Header file for SD card interface
-//#include "fileio_header.h" //Header file for FAT file system library
+#include "SDCard_HeaderFile.h" //Header file for SD card interface
+
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
 
@@ -62,14 +62,7 @@ void ConfigurePins(void);       //Function to configure pins
 //--------------<Define Global Variables>------------
 
 //~~~~~~~~~~~~~~~~~<SD Card Variables>~~~~~~~~~~~~~~~
-/*
-#define B_SIZE 512 //Size of data block for SD card
-char data[B_SIZE];
-char buffer[B_SIZE];
-
-#define START_ADDRESS 10000 //Start block address
-#define N_BLOCKS 1000 //Number of Blocks to write to
- */
+#define B_SIZE 512
 
 //-------------------<Main>--------------------------
 void main(){
@@ -83,18 +76,12 @@ void main(){
     //unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
     
     //SD Card Variables
-   // MFILE *fd; 
-    //unsigned r;
-    //LBA addr;
-    //int i,r;
-    
-    //Initializes the DATA for testing
- 
-    //for(i=0;i<B_SIZE;i++){
-       // data[i]=i;       
-    //}
-    //int i;
-    //char datpassed;
+  
+    int i;
+    unsigned char r;
+    for(i=0;i<B_SIZE;i++){
+        buffer[i]=i;       
+    }
     
     
     //Accelerometer variables
@@ -119,51 +106,19 @@ void main(){
     
     
     //SD Card
-    //Configure_SPI1(15); //Initializes the SPI1 peripheral to 250 KHz
-    //r=initSD();
+    LATBbits.LATB15=1;
+    setupSPI(15); //Initializes the SPI1 peripheral to 250 KHz
+    r=SD_init();
     
     
     
     //---------------<Initializing Pin Values>-----------------    
-    //WriteKey(0); //The Bluetooth module is set to data mode (0)
+    WriteKey(0); //The Bluetooth module is set to data mode (0)
     //Write_CS_SD(1); //Drives cs pin on SD card low
     
     //----------------------<SD Card Test>----------------------------
     
-    /*
-    if(r) //Could not initialize
-    {
-        while(1);
-    }
     
-    else
-    {
-        addr=START_ADDRESS;
-        for(i=0;i<N_BLOCKS;i++)
-        {
-            if(!writeSECTOR(addr+i,data)){
-                while(1); //Halts if write does not work
-            }
-        }
-            
-    }
-    */
-    /*
-    while(!detectSD()); //Waits for the SD card to be inserted
-    
-    if(mount()) //Mounts (initializes) the SD card and enters the if statement if it is successful
-    {
-        if((fd=fopenM("HorseData.txt","w"))) //Create a file and continues if there are no errors, opens the file for writing
-        {
-            r=fwriteM(data,B_SIZE,fd); //Data is the data to be written, B_SIZE is the size of the data to be written, fd is the information stored in the FAT
-            fcloseM(fd); //Closes the file
-        }
-        
-    }
-    
-    unmount();
-    
-     * */
     
     
     while(1){
@@ -226,6 +181,7 @@ void __ISR(_TIMER_1_VECTOR, IPL6AUTO) Timer1Handler(void)
 void ConfigurePins(void)
 {
     //---------------------<Bluetooth Module Pins (UART1)>---------------------
+    /*
     //KEY Pin For Bluetooth Module (data mode or AT Command) - default is low (data mode)
     ANSELBbits.ANSB0=0; //RB0 is set as digital pin
     TRISBbits.TRISB0=0; //RB0 set as output
@@ -237,6 +193,7 @@ void ConfigurePins(void)
     //TX Pin for bluetooth module (one micros side) (does not need to be programmed because it is built in in hardware)
     ANSELBbits.ANSB14=0; //Sets RB14 to digital I/O
     TRISBbits.TRISB14=0; //U1TX is an output
+     * */
     
     //------------------------------<ADC Pins>----------------------------------
     
@@ -273,9 +230,7 @@ void ConfigurePins(void)
     ANSELBbits.ANSB15=0; //Digital pin
     TRISBbits.TRISB15=0; //SS1 (chip select) for SD card
     
-    ANSELAbits.ANSA0=0; //Digital pin
-    TRISAbits.TRISA0=1; //CD (card detect) set as input
-    
+       
     //------------------------<Debugging Pins>-------------------------
     
        

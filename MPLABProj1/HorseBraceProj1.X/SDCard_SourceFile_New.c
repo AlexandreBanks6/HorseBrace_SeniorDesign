@@ -1,7 +1,7 @@
 #include <xc.h>
 //~~~~~~~~~~~~~~<Constant/Macro Definitions Definitions>~~~~~~~~~~~~~~~~~~
-#define readSPI() writeSPI(0xFF) //Function to read from the SPI (completed by writing a dummy byte)
-#define clockSPI() writeSPI(0xFF)
+#define readSPI() writeSPI(0x00) //Function to read from the SPI (completed by writing a dummy byte)
+#define clockSPI() writeSPI(0x00)
 #define disableSD() Write_CS_SD(1); clockSPI()
 #define enableSD() Write_CS_SD(0)
 
@@ -10,6 +10,7 @@
 
 #define RESET 0 // a.k.a. GO_IDLE (CMD0)
 #define INIT 1 // a.k.a SEND_OP_COND (CMD1)
+#define CMD8 8
 #define READ_SINGLE 17 // read a block of data
 #define WRITE_SINGLE 24 // write a block of data
 #define DATA_START 0xFE //Specific token sent by memory card when data is being read from device
@@ -48,6 +49,7 @@ void Configure_SPI1(int BRGDiv){
     //Falling Edge of Clock for data transmission
     SPI1CONbits.CKP=0; //Idle clock state = low level (0)
     SPI1CONbits.CKE=1; //Transitions from active clock state (1) to idle clock state (0)
+    SPI1CONbits.SMP=0; //Sampling point for the SD card input is centered
     
     //Master Clock Enable Bit
     SPI1CONbits.MCLKSEL=0; //Uses Fpb=8MHz
@@ -81,8 +83,9 @@ void Change_SPI1Clock(int BRGDiv){
 //Writing to the SPI1
 unsigned char writeSPI(unsigned char DataTX){
     //Transmits a byte
-    SPI1BUF=DataTX; //Data to be transmitted is written to the SPI2BUF register, automatically cleared in hardware
+    SPI1BUF=(DataTX&0xFF); //Data to be transmitted is written to the SPI2BUF register, automatically cleared in hardware
     while(!SPI1STATbits.SPITBE); //Loops while the transmit buffer is not empty (waits for it to be empty)
+    //while(!SPI1STATbits.SPIRBF); //THis bits is set when the receive buffer is full
     return(SPI1BUF);
     
 }
@@ -90,7 +93,7 @@ unsigned char writeSPI(unsigned char DataTX){
 
 //Writing to the CS pin
 void Write_CS_SD(int data){ //Writes to SD card Chip Select
-    LATBbits.LATB8=data;
+    LATBbits.LATB15=data;
     return;
 }
 
@@ -102,7 +105,7 @@ void Write_CS_SD(int data){ //Writes to SD card Chip Select
 int sendSDCmd( unsigned char c, LBA a)
 // sends a 6 byte command block to the card and leaves SDCS active
 {
- int i, r;
+ int i,j, r;
  // enable SD card
  Write_CS_SD(0);
  // send a comand packet (6 bytes)
@@ -112,8 +115,13 @@ int sendSDCmd( unsigned char c, LBA a)
  writeSPI( a>>8);
  writeSPI( a); // lsb
 // NOTE only CMD0-RESET requires an actual CRC (once in SPI mode CRC is disabled)
- writeSPI( 0x95); // send CRC of RESET, for all other cmds it?s a don?t care
  
+ if(c==CMD8){
+     writeSPI(0x87);
+ }
+ else{
+ writeSPI(0x95); // send CRC of RESET, for all other cmds it?s a don?t care
+ }
  //Wait for a response up to an 8 byte delay
  i=9;
  do
@@ -121,6 +129,7 @@ int sendSDCmd( unsigned char c, LBA a)
      r=readSPI(); //Checks if the SD card has returned a response (line is no longer high)
      if(r!=0xFF) break;
  }while(--i>0);
+ 
  
  return(r);
  
@@ -148,14 +157,61 @@ int initSD(void)
     //Select the card
     Write_CS_SD(0);
     
-    //Send a reset command to enter SPI mode
-    r=sendSDCmd(RESET,0); Write_CS_SD(1);
-    if(r!=1){
-        return(0x84);
-    }
     
+     Write_CS_SD(0);
+    // send a comand packet (6 bytes)
+    writeSPI( RESET | 0x40); // send command + frame bit
+    writeSPI( (unsigned char) 0>>24); // msb of the address
+    writeSPI( 0>>16); 
+    writeSPI( 0>>8);
+    writeSPI( 0); // lsb
+    // NOTE only CMD0-RESET requires an actual CRC (once in SPI mode CRC is disabled)
+    writeSPI(0x95); // send CRC of RESET, for all other cmds it?s a don?t care
+    
+    
+    
+    i=9;
+    do
+    {
+     r=readSPI(); //Checks if the SD card has returned a response (line is no longer high)
+     if(r!=0xFF) break;
+    }while(--i>0);
+    Write_CS_SD(1);
+    
+    
+    
+    
+     Write_CS_SD(0);
+    // send a comand packet (6 bytes)
+    writeSPI( CMD8 | 0x40); // send command + frame bit
+    writeSPI( (unsigned char) 0x00001AA>>24); // msb of the address
+    writeSPI((unsigned char)0x00001AA>>16); 
+    writeSPI((unsigned char)0x00001AA>>8);
+    writeSPI((unsigned char)0x00001AA); // lsb
+    // NOTE only CMD0-RESET requires an actual CRC (once in SPI mode CRC is disabled)
+ 
+    writeSPI(0x87);
+   //Wait for a response up to an 8 byte delay
+    i=9;
+    do
+    {
+       r=readSPI(); //Checks if the SD card has returned a response (line is no longer high)
+       if(r!=0xFF) break;
+    }while(--i>0);
+    
+    
+    Write_CS_SD(1);
+    //Send a reset command to enter SPI mode
+    //r=sendSDCmd(RESET,0); Write_CS_SD(1);
+   // if(r!=1){
+        //return(0x84);
+    //}
+    
+    
+    
+    //r=sendSDCmd(CMD8,0x00001AA); Write_CS_SD(1);
     //Send INIT repeatedly
-    i=10000; //Allows up to 0.3 seconds before timeout
+   /* i=10000; //Allows up to 0.3 seconds before timeout
     do{
         r=sendSDCmd(INIT,0); Write_CS_SD(1);
         if(r) break; //Card response not in the idle state
@@ -163,7 +219,8 @@ int initSD(void)
     if((i==0)||(r!=1)){
         return(0x85); //Timeout has occured
         
-    }
+    }*/
+    
     
     //Increase the SPI speed to 4MHz transmission
     Change_SPI1Clock(0); 

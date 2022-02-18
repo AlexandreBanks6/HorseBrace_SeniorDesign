@@ -49,12 +49,11 @@
 #include <cp0defs.h>
 #include <proc/p32mm0064gpl036.h>
 #include <math.h> //Has a bunch of useful math functions
-
 //Custom Libraries
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
 #include "ADC_HeaderFile.h"     //Header file for ADC functions (with flex sensors)
 #include "SPI_HeaderFile.h"     //Header file for SPI interface with accelerometer
-//#include "SDCard_HeaderFile_New.h" //Header file for SD card interface
+#include "SDCard_HeaderFile_New.h" //Header file for SD card interface
 //#include "fileio_header.h" //Header file for FAT file system library
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
@@ -63,11 +62,14 @@ void ConfigurePins(void);       //Function to configure pins
 //--------------<Define Global Variables>------------
 
 //~~~~~~~~~~~~~~~~~<SD Card Variables>~~~~~~~~~~~~~~~
-//#define B_SIZE 512 //Size of data block for SD card
-//char data[B_SIZE];
-//char buffer[B_SIZE];
+/*
+#define B_SIZE 512 //Size of data block for SD card
+char data[B_SIZE];
+char buffer[B_SIZE];
 
-
+#define START_ADDRESS 10000 //Start block address
+#define N_BLOCKS 1000 //Number of Blocks to write to
+ */
 
 //-------------------<Main>--------------------------
 void main(){
@@ -83,12 +85,20 @@ void main(){
     //SD Card Variables
    // MFILE *fd; 
     //unsigned r;
+    //LBA addr;
+    //int i,r;
+    
+    //Initializes the DATA for testing
+ 
+    //for(i=0;i<B_SIZE;i++){
+       // data[i]=i;       
+    //}
     //int i;
     //char datpassed;
     
     
     //Accelerometer variables
-    double *AccResult; //Will contain the accelerometer readings in three axis
+    //double *AccResult; //Will contain the accelerometer readings in three axis
                     //XDat=*AccResult; YDat=*(AccResult+1);ZDat=*(AccResult+2);
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
@@ -108,7 +118,10 @@ void main(){
     ConfigureAccelerometer(); //Configures the accelerometer to function in normal mode with 1000 Hz data aquisition
     
     
-      
+    //SD Card
+    //Configure_SPI1(15); //Initializes the SPI1 peripheral to 250 KHz
+    //r=initSD();
+    
     
     
     //---------------<Initializing Pin Values>-----------------    
@@ -116,14 +129,26 @@ void main(){
     //Write_CS_SD(1); //Drives cs pin on SD card low
     
     //----------------------<SD Card Test>----------------------------
+    
     /*
-    //Initializes the DATA for testing
-    datpassed=0;
-    for(i=0;i<B_SIZE;i++){
-        data[i]=datpassed;
-        datpassed++;       
+    if(r) //Could not initialize
+    {
+        while(1);
     }
-
+    
+    else
+    {
+        addr=START_ADDRESS;
+        for(i=0;i<N_BLOCKS;i++)
+        {
+            if(!writeSECTOR(addr+i,data)){
+                while(1); //Halts if write does not work
+            }
+        }
+            
+    }
+    */
+    /*
     while(!detectSD()); //Waits for the SD card to be inserted
     
     if(mount()) //Mounts (initializes) the SD card and enters the if statement if it is successful
@@ -142,7 +167,7 @@ void main(){
     
     
     while(1){
-         AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers (using 100g max)
+         //AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers (using 100g max)
         
          
     }
@@ -238,12 +263,12 @@ void ConfigurePins(void)
     RPOR2bits.RP12R=4; //Connects SCK2OUT to RP12
     
     //-------------------------<SD Card Pins>-------------------------
-    //TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card (don't need to initialize these because they are driven directly by peripheral)
+    TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card (don't need to initialize these because they are driven directly by peripheral)
     
-    //ANSELBbits.ANSB14=0; //Digital pin
-    //TRISBbits.TRISB14=1; //SDI1 (MISO) for SD card
+    ANSELBbits.ANSB14=0; //Digital pin
+    TRISBbits.TRISB14=1; //SDI1 (MISO) for SD card
    
-    //TRISBbits.TRISB8=0; //SCK1 (clock) for SD card
+    TRISBbits.TRISB8=0; //SCK1 (clock) for SD card
     
     ANSELBbits.ANSB15=0; //Digital pin
     TRISBbits.TRISB15=0; //SS1 (chip select) for SD card

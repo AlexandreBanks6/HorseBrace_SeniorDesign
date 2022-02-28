@@ -9,7 +9,7 @@
 #include "UART_HeaderFile.h"    //Includes the header file with the function definitions
 
 //~~~~~~~~~~~~~~~~~~~<UART1 Init>~~~~~~~~~~~~~~~~~~
-void initUART(long BaudRate, long FPB) //Initializes the UART Module for 8N1 UART
+void initUART(unsigned long BaudRate, unsigned long FPB) //Initializes the UART Module for 8N1 UART
 {
     U1MODEbits.BRGH=0; //Standard speed mode (16x baud clock is enabled)
     int BRGPrescalar;   //BRGPrescalar for configuring baud rate

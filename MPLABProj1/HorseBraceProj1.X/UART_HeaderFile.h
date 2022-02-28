@@ -8,7 +8,7 @@
 #define	UART_HEADERFILE_H
 #include <xc.h>
 //---------------<Function Definitions>--------------
-void initUART(long BaudRate, long FPB);     //Initializes the UART1 module
+void initUART(unsigned long BaudRate, unsigned long FPB);     //Initializes the UART1 module
 void WriteChar(char c);             //writes a character over UART1
 int WriteString(char *string);
 char ReadChar(void);             //Reads a single character from the UART1 RX

@@ -53,16 +53,12 @@
 #include "UART_HeaderFile.h"    //Header file for source file with UART functions
 #include "ADC_HeaderFile.h"     //Header file for ADC functions (with flex sensors)
 #include "SPI_HeaderFile.h"     //Header file for SPI interface with accelerometer
-#include "SDCard_HeaderFile.h" //Header file for SD card interface
-
+#include "SDCardUART_Header.h" //Header for UART2 writes to the SD card
 //-------------<Function Definitions>-----------------
 void ConfigurePins(void);       //Function to configure pins
 
 
 //--------------<Define Global Variables>------------
-
-//~~~~~~~~~~~~~~~~~<SD Card Variables>~~~~~~~~~~~~~~~
-#define B_SIZE 512
 
 //-------------------<Main>--------------------------
 void main(){
@@ -71,21 +67,18 @@ void main(){
        __builtin_enable_interrupts(); //Enables global interrupts
        INTCONbits.MVEC=1; //Interrupt controller configured for Multivectored mode
     //----------------<Initializing Variables>-----------------
-    long BaudRate = 9600; //Baud rate for UART
-    long FPB=8000000;   //Peripheral clock speed is 8 MHz 
-    //unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
+    unsigned long BaudRate = 9600; //Baud rate for UART
+    unsigned long SDBaudRate=250000; //Baud rate for UART with the SD card
+    unsigned long FPB=8000000;   //Peripheral clock speed is 8 MHz 
+    unsigned long Start=1000;
+    unsigned int long Flex1_AN3; unsigned int long Flex2_AN4; //ADC results
+    char data=0b00101010;
     
-    //SD Card Variables
-  
-    int i;
-    unsigned char r;
-    for(i=0;i<B_SIZE;i++){
-        buffer[i]=i;       
-    }
+        
     
     
     //Accelerometer variables
-    //double *AccResult; //Will contain the accelerometer readings in three axis
+    double *AccResult; //Will contain the accelerometer readings in three axis
                     //XDat=*AccResult; YDat=*(AccResult+1);ZDat=*(AccResult+2);
     //---------------------<Configuring Pins>-----------------
     ConfigurePins(); // Configuring the pins
@@ -104,25 +97,22 @@ void main(){
     Configure_SPI2(); //Configures SPI2 peripheral to use 2 MHz communication with the accelerometer module, and using 16-bit communication
     ConfigureAccelerometer(); //Configures the accelerometer to function in normal mode with 1000 Hz data aquisition
     
-    
-    //SD Card
-    LATBbits.LATB15=1;
-    setupSPI(15); //Initializes the SPI1 peripheral to 250 KHz
-    r=SD_init();
-    
-    
+    //Configure the UART2 for SD Card Writes
+    init_SD_UART(SDBaudRate,FPB); //Initialize UART2 for SD Card communication
+
     
     //---------------<Initializing Pin Values>-----------------    
     WriteKey(0); //The Bluetooth module is set to data mode (0)
-    //Write_CS_SD(1); //Drives cs pin on SD card low
+
     
     //----------------------<SD Card Test>----------------------------
     
     
     
-    
+    //WriteChar(data);
     while(1){
-         //AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers (using 100g max)
+   // AccResult=Read_Acc_XYZ(); //Calls to read three axis of accelerometers (using 100g max)
+   SendSDChar(data);
         
          
     }
@@ -181,7 +171,6 @@ void __ISR(_TIMER_1_VECTOR, IPL6AUTO) Timer1Handler(void)
 void ConfigurePins(void)
 {
     //---------------------<Bluetooth Module Pins (UART1)>---------------------
-    /*
     //KEY Pin For Bluetooth Module (data mode or AT Command) - default is low (data mode)
     ANSELBbits.ANSB0=0; //RB0 is set as digital pin
     TRISBbits.TRISB0=0; //RB0 set as output
@@ -193,7 +182,6 @@ void ConfigurePins(void)
     //TX Pin for bluetooth module (one micros side) (does not need to be programmed because it is built in in hardware)
     ANSELBbits.ANSB14=0; //Sets RB14 to digital I/O
     TRISBbits.TRISB14=0; //U1TX is an output
-     * */
     
     //------------------------------<ADC Pins>----------------------------------
     
@@ -219,16 +207,17 @@ void ConfigurePins(void)
     //Clock out (SCK2)
     RPOR2bits.RP12R=4; //Connects SCK2OUT to RP12
     
-    //-------------------------<SD Card Pins>-------------------------
-    TRISBbits.TRISB9=0; //SD01 (MOSI) for SD card (don't need to initialize these because they are driven directly by peripheral)
+    //-------------------------<UART For SD Card Pins>-------------------------
+    /*
+     * UART Pins for SD Card:
+     * UART 2 RX: RP11/RB7
+     * UART 2 TX: RP20/RA9
     
-    ANSELBbits.ANSB14=0; //Digital pin
-    TRISBbits.TRISB14=1; //SDI1 (MISO) for SD card
-   
-    TRISBbits.TRISB8=0; //SCK1 (clock) for SD card
-    
-    ANSELBbits.ANSB15=0; //Digital pin
-    TRISBbits.TRISB15=0; //SS1 (chip select) for SD card
+     */
+    //Only using the TX on the micro side
+     //RPINR9bits.U2RXR=11;  //THis is the RX pin 
+     RPOR4bits.RP20R=1; //This is the TX pin to the SD card
+     
     
        
     //------------------------<Debugging Pins>-------------------------

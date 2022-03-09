@@ -19,18 +19,19 @@ MEDIA*mount(void){
     
     Write_CS_SD(1); //Drives CS pin high for the SD card
     
-    Configure_SPI1(15); //Configures the SPI1 peripheral for data transfer with SD card
+    initSD(15); //Configures the SPI1 peripheral for data transfer with SD card
     
     //Check if the card is in the slot
-    if(!detectSD())
+   /* if(!detectSD())
     {
         FError=FE_NOT_PRESENT;
         return(NULL);
     }
+    */
     
       
     //Initializes the SD card
-    if(initSD()){ //Include action here to show there is an error in the SD card
+    if(initMedia()){ //Include action here to show there is an error in the SD card
         FError=FE_CANNOT_INIT;
         return(NULL);
         
@@ -148,6 +149,7 @@ void unmount( void){
 } // unmount
 
 
+/*
 MFILE *fopenM(const char *filename, const char *mode){ //Function that finds all possible information regarding a file
             //Gathering it in a new structure that is called MFILE
 
@@ -370,6 +372,7 @@ MFILE *fopenM(const char *filename, const char *mode){ //Function that finds all
             return(NULL);
     
 }
+ */
 
 
 unsigned readDATA(MFILE *fp){

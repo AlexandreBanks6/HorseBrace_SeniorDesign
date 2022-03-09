@@ -10,6 +10,8 @@
       <itemPath>SDCard_HeaderFile_New.h</itemPath>
       <itemPath>fileio_header.h</itemPath>
       <itemPath>SDCard_HeaderFile.h</itemPath>
+      <itemPath>fat32.h</itemPath>
+      <itemPath>SDCardUART_Header.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -25,6 +27,8 @@
       <itemPath>SDCard_SourceFile.c</itemPath>
       <itemPath>SDCard_SourceFile_New.c</itemPath>
       <itemPath>fileio.c</itemPath>
+      <itemPath>fat32.c</itemPath>
+      <itemPath>SDCardUART.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -217,6 +221,7 @@
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="memories.configurationmemory" value="true"/>
         <property key="memories.dataflash" value="true"/>
         <property key="memories.eeprom" value="true"/>
@@ -236,6 +241,22 @@
         <property key="programoptions.usehighvoltageonmclr" value="false"/>
         <property key="programoptions.uselvpprogramming" value="true"/>
       </PKOBSKDEPlatformTool>
+      <item path="SDCard_HeaderFile.h" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
+      </item>
       <item path="SDCard_HeaderFile_New.h" ex="true" overriding="false">
         <C32>
         </C32>
@@ -252,7 +273,7 @@
         <C32Global>
         </C32Global>
       </item>
-      <item path="SDCard_SourceFile.c" ex="false" overriding="false">
+      <item path="SDCard_SourceFile.c" ex="true" overriding="false">
         <C32>
         </C32>
         <C32-AR>
@@ -744,6 +765,10 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+      <item path="fat32.c" ex="true" overriding="false">
+      </item>
+      <item path="fat32.h" ex="true" overriding="false">
+      </item>
       <item path="fileio.c" ex="true" overriding="false">
         <C32>
         </C32>

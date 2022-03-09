@@ -35,7 +35,7 @@ void setupSPI(int BRGDiv){
     SPI1CONbits.MSSEN=0;
     //Falling Edge of Clock for data transmission
     SPI1CONbits.CKP=0; //Idle clock state = low level (0)
-    SPI1CONbits.CKE=1; //Transitions from active clock state (1) to idle clock state (0)
+    SPI1CONbits.CKE=0; //Transitions from active clock state (1) to idle clock state (0)
     SPI1CONbits.SMP=1; //Sampling point for the SD card input is at the end
     
     //Master Clock Enable Bit
@@ -74,10 +74,11 @@ unsigned char SPI_receive(void){
     return(DataRX);
 }
 
+/*
 void Write_CS_SD(int data){
     LATBbits.LATB15=data;
     return;
-}
+}*/
 
 
 void SD_CS_ASSERT(void){
@@ -108,7 +109,6 @@ unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
         }
     }
     
-    SD_CS_ASSERT(); //Drives CS pin from high to low
     SPI_transmit(cmd|0x40); //Send command, first two bits are '01'
     SPI_transmit(arg>>24);
     SPI_transmit(arg>>16);
@@ -121,10 +121,12 @@ unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
         SPI_transmit(0x95);
     }
     
+    
     while((response=SPI_receive())==0xff){ //Getting the response from the SD card
         if(retry++>0xfe) break; //used as a time-out error
         
     }
+    
     if(response==0x00&&cmd==58){ //THis is to check the response of CMD58
         status=SPI_receive()& 0x40; //This is to take the first byte of the OCR register in the SD card
         if(status==0x40) SDHC_flag=1; //SDHC card needs to be verified
@@ -135,7 +137,7 @@ unsigned char SD_sendCommand(unsigned char cmd, unsigned long arg)
         
     }
     SPI_receive(); //Extra 8 clock pulses
-    SD_CS_DEASSERT(); //Drives CS pin from low to high
+    
     return response; //Returns the response from the SD card 
 }
 
@@ -155,13 +157,14 @@ unsigned char SD_init(void){
 SD_CS_ASSERT(); //Drives the CS pin from high to low
 do
 {
+    
     response=SD_sendCommand(GO_IDLE_STATE,0); //Sends the CMD0 command which is a software reset
     retry++;
     if(retry>0x20){
         return 1; //There was a timeout when initializing (no card is detected)
     }
 }while(response!=0x01); //Loops until the card is in the idle state and we are good to go
-SD_CS_DEASSERT(); //Drives CS pin high
+
 //Clocks through 16 bits
 SPI_transmit(0xff);
 SPI_transmit(0xff);
@@ -191,7 +194,7 @@ do{
     }
     
     
-}while(response!=0x00); //Loops until we get the response that the command has been accepted
+}while(response!=0x01); //Loops until we get the response that the command has been accepted
 
 retry=0;
 SDHC_flag=0; //No issue with SD card
@@ -206,11 +209,11 @@ if(SD_version==2) //enters if the SD card version is 2
             cardType=0; //Version two
             break;
         } //Time out
-    }while(response!=0x00);
+    }while(response!=0x01);
     if(SDHC_flag==1) cardType=2;
     else cardType=3;
 }
-
+SD_CS_DEASSERT(); //Drives CS pin high
 return(0); //Means a successful return    
     
 }
@@ -236,14 +239,15 @@ unsigned char SD_writeSingleBlock(unsigned long startBlock) //This is to read a 
     //Init variables
     unsigned char response;
     unsigned int i, retry=0;
-    
+    SD_CS_ASSERT(); //Drives CS pin from high to low
     response=SD_sendCommand(WRITE_SINGLE_BLOCK,startBlock); //write a block to the SD card
     if(response !=0x00) //Checks that the card acknowledges the command
     {
+        SD_CS_DEASSERT();
         return(response); //Error in writing to the block
         
     }
-    SD_CS_ASSERT(); //Drives CS pin from high to low
+    
     SPI_transmit(0xfe); //Sends the start block token
     for(i=0;i<512;i++){
         SPI_transmit(buffer[i]); //Transmits the data to be sent (sends 512 bytes)

@@ -8,6 +8,7 @@ recording commands.
 %}
 clear
 clc
+close all
 
 %% Defining the app
 % fig=uifigure;
@@ -31,7 +32,7 @@ clc
 %show the bluetooth list (for debugging only)
 % list=bluetoothlist;
 % %Connect to the HC-05 bluetooth module
-device=bluetooth("HC-05");  
+device=bluetooth("TekBoot");  
 ReHorseUI(device);
 
 %% UI Function

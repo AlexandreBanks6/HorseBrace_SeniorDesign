@@ -31,14 +31,17 @@ DS18B20 ds(TEMP_pin); //establish onewire connection
 //-------------------------<Initializing Variables>------------------
 int Baud_BT=9600;
 int BluetoothByte;
+char DateDataBuf[11];
+int bytecount=0; //Used to count number of bytes transmitted from bluetooth module for storing the current date and time
 int StartRec=0; //boolean toggled by bluetooth module (1=read data from sensors)
+int LiveStream=0; //Boolean to start the live stream
 //unsigned long SampleTimePast=0, SampleTimeNew=0; //Used to store the time betwee micros() reads (sensors are sampled every 2000 micros)
 int Flex1_ValRaw, Flex2_ValRaw; //These are the variables to store the analogue to digital converter values
 
 File myFile; //Used for SD Card files
 
 int16_t x,y,z; //Accelerometer data
-//char buf[40];
+char FlexBuf[4]; //Buffer used to send flex sensor bytes
 //int n; //Total number of characters stored in the buffer
 
 
@@ -85,9 +88,10 @@ xl.setHighPassCoeff(LIS331::HPC_64); //Sets the high pass filter cutoff to 2.6 H
 //-------------------------------<SD Card Setup>------------------------
 if(!SD.begin(CS_SD)){
   Serial.println("SD Initialization Failed");
-  while(1);
 }
+else{
 Serial.println("SD Initialization Completed");
+}
 //Open The File where data will be saved for writing and add the headers
 myFile=SD.open("TekBoot.csv",FILE_WRITE);
 if(myFile){
@@ -121,8 +125,78 @@ if(TempBoolean==0){ //The temperature sensor addresses need to be set up
 //---------------------<Check for data from bluetooth>------------------
 if(Serial1.available()>0){
   BluetoothByte=Serial1.read(); //reads the byte from the bluetooth module
-  if(BluetoothByte=='I'){ //Toggles global boolean to start recording data from the sensors
+  if(BluetoothByte=='C'){ //Write the calibration line
+    Serial.print("Calibration");
+    //-------------------------------<SD Card Setup>------------------------
+    if(!SD.begin(CS_SD)){
+      Serial.println("SD Initialization Failed");
+      
+    }
+    else{
+    Serial.println("SD Initialization Completed");
+    }
+    //Open The File where data will be saved for writing and add the headers
+    myFile=SD.open("TekBoot.csv",FILE_WRITE);
+    if(myFile){
+      myFile.println("Flex1,Flex2,x,y,z,tempAddress,tempValue,time");
+    }
+
+    while(!Serial1.available()){
+        //Waits until data is available
+    }
+    
+    while(bytecount<11){ //loops for the eight bytes carrying the time and date
+      
+      DateDataBuf[bytecount]=Serial1.read();
+      
+
+
+      bytecount++;
+
+
+      
+    }
+    Serial.write(DateDataBuf,11);
+    bytecount=0; //Restarting bytecount
+
+
+    
+    //Flex Sensor Readings
+    Flex1_ValRaw=analogRead(FLEX1_pin); //Reads the raw binary conversion of the analogue channel
+    Flex2_ValRaw=analogRead(FLEX2_pin);
+    //Accelerometer
+    xl.readAxes(x,y,z); //Reads the accelerometer 
+    //Temperature Sensor
+    ds.select(addressBook[1]);
+    tempValue = ds.getTempC(); //Reads the temperatre for selected address
+    ds.getAddress(tempAddress);
+
+
+    //Writes the calibration line to the CSV
+    myFile.print(Flex1_ValRaw);
+    myFile.print(",");
+    myFile.print(Flex2_ValRaw);
+    myFile.print(",");
+    myFile.print(x);
+    myFile.print(",");
+    myFile.print(y);
+    myFile.print(",");
+    myFile.print(z);
+    myFile.print(",");
+    myFile.print(tempAddress[7]);
+    myFile.print(",");
+    myFile.print(tempValue);
+    myFile.print(",");
+    myFile.write(DateDataBuf,11); //Writes the time and date of the calibration
+    myFile.print(",");
+    myFile.println("Calibration");
+    myFile.close();
+    
+    
+  }
+  else if(BluetoothByte=='I'){ //Toggles global boolean to start recording data from the sensors
     StartRec=1;
+    
     myFile=SD.open("TekBoot.csv",FILE_WRITE); //Opens SD card file for writing
     if(myFile){
       Serial.print("File Opened Correctly");        
@@ -136,6 +210,14 @@ if(Serial1.available()>0){
     StartRec=0;
     myFile.close();
     Serial.print("File Closed");  
+  }
+  else if(BluetoothByte=='L'){ //Start Live Data Stream
+    LiveStream=1;
+    //Serial.print("Live Stream On");
+    
+  }
+  else if(BluetoothByte=='S'){
+    LiveStream=0;
   }
   
 }
@@ -197,6 +279,7 @@ if(((micros()-oldtime)>=2000)&&(StartRec==1)){
     myFile.print(",");
     myFile.print(tempValue);
     myFile.print(",");
+    Serial.println(tempValue);
     PrintTemp=0;
   }
   else{
@@ -205,6 +288,20 @@ if(((micros()-oldtime)>=2000)&&(StartRec==1)){
   
   myFile.println(oldtime);  
 
+
+  if(LiveStream==1){ //Write the data to MATLAB for the livestream
+    //Serial.println(Flex1_ValRaw); //Writes the flex sensor data
+    FlexBuf[0]=(Flex1_ValRaw&0xFF);
+    FlexBuf[1]=((Flex1_ValRaw>>8)&0xFF);
+    FlexBuf[2]=((Flex1_ValRaw>>16)&0xFF);
+    FlexBuf[3]=((Flex1_ValRaw>>24)&0xFF);
+    Serial1.write(FlexBuf,4);
+    //Serial.print(Flex1_ValRaw);
+    
+  }
+
+
+    
   //Increment Flag Count
   FlagCount++;
 }
